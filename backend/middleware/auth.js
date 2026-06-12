@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'vault_default_jwt_secret_token_192837465';
+const JWT_SECRET = process.env.JWT_SECRET || 'vault_secure_jwt_secret_token_192837465_vault';
 
 /**
  * Middleware to verify JWT from headers
