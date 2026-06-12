@@ -46,6 +46,7 @@ app.get('/health', async (req, res) => {
       has_db_url: !!process.env.NEON_DATABASE_URL,
       has_jwt_secret: !!process.env.JWT_SECRET,
       has_encryption_key: !!process.env.ENCRYPTION_KEY,
+      keys: Object.keys(process.env)
     },
     database: dbStatus
   });
