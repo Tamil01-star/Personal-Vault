@@ -6,10 +6,10 @@
 
 @layer base {
   :root {
-    --background: 248 250 252;      /* Slate 50 */
-    --foreground: 15 23 42;         /* Slate 900 */
+    --background: 241 245 249;      /* Slate 100 - distinct page backdrop */
+    --foreground: 15 23 42;         /* Slate 900 - dark text */
     
-    --card: 255 255 255;            /* White */
+    --card: 255 255 255;            /* White card blocks */
     --card-foreground: 15 23 42;
     
     --popover: 255 255 255;
@@ -18,11 +18,11 @@
     --primary: 99 102 241;          /* Indigo 500 */
     --primary-foreground: 255 255 255;
     
-    --secondary: 241 245 249;        /* Slate 100 */
+    --secondary: 226 232 240;        /* Slate 200 - distinct from background */
     --secondary-foreground: 15 23 42;
     
-    --muted: 241 245 249;
-    --muted-foreground: 100 116 139; /* Slate 500 */
+    --muted: 226 232 240;
+    --muted-foreground: 71 85 105;   /* Slate 600 - high-contrast subtext */
     
     --accent: 238 242 255;           /* Indigo 50 */
     --accent-foreground: 79 70 229;  /* Indigo 600 */
@@ -30,8 +30,8 @@
     --destructive: 239 68 68;       /* Red 500 */
     --destructive-foreground: 255 255 255;
     
-    --border: 226 232 240;          /* Slate 200 */
-    --input: 226 232 240;
+    --border: 203 213 225;          /* Slate 300 - clear borders on cards/inputs */
+    --input: 203 213 225;
     --ring: 99 102 241;
     
     --radius: 0.75rem;
