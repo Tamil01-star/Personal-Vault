@@ -242,20 +242,21 @@ export const Documents: React.FC = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card border border-border p-6 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-gradient-to-br from-cyan-500/5 via-teal-500/5 to-card/95 border border-cyan-500/10 p-6 rounded-2xl shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl -mr-10 -mt-10" />
+        <div className="flex items-center gap-3 relative z-10">
           <div className="p-3 bg-cyan-500/10 text-cyan-500 rounded-xl">
             <FileText size={22} />
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight text-foreground">Secure Documents Vault</h2>
-            <p className="text-muted-foreground text-xs">Upload important files, PDFs, or photos securely.</p>
+            <p className="text-muted-foreground text-xs font-medium">Upload important files, PDFs, or photos securely.</p>
           </div>
         </div>
 
         {/* Search */}
         <div className="relative w-full sm:w-72">
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground/80">
             <Search size={14} />
           </span>
           <input
@@ -263,7 +264,7 @@ export const Documents: React.FC = () => {
             placeholder="Search documents by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-2 pl-8.5 pr-4 text-xs placeholder-muted-foreground focus:outline-none transition-colors"
+            className="w-full premium-input pl-9.5 pr-4 py-2 text-xs focus:ring-4 focus:ring-cyan-500/10 transition-all"
           />
         </div>
       </div>
@@ -271,7 +272,7 @@ export const Documents: React.FC = () => {
       {/* UPLOAD CLOUD DRAG AREA */}
       <div
         onClick={handleUploadClick}
-        className="border-2 border-dashed border-border hover:border-primary/60 hover:bg-primary/5 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group text-center"
+        className="border-2 border-dashed border-border/80 hover:border-primary/50 hover:bg-primary/5 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 group text-center relative overflow-hidden bg-card/60 backdrop-blur-md"
       >
         <input
           type="file"
@@ -280,14 +281,14 @@ export const Documents: React.FC = () => {
           className="hidden"
         />
         
-        <div className="p-4 bg-card border border-border rounded-xl group-hover:scale-105 transition-transform shadow-sm mb-4">
+        <div className="p-4 bg-card border border-border rounded-2xl group-hover:scale-105 transition-transform shadow-sm mb-4">
           <UploadCloud size={28} className={uploading ? 'text-primary animate-bounce' : 'text-muted-foreground group-hover:text-primary'} />
         </div>
         
         <h3 className="text-xs font-bold text-foreground mb-1">
           {uploading ? 'Uploading secure file...' : 'Upload Important File'}
         </h3>
-        <p className="text-[10px] text-muted-foreground max-w-xs leading-relaxed">
+        <p className="text-[10px] text-muted-foreground max-w-xs leading-relaxed font-medium">
           Support images, text documents, or PDFs up to 10MB.
         </p>
       </div>
@@ -320,18 +321,18 @@ export const Documents: React.FC = () => {
           {files.map((file) => (
             <div
               key={file.id}
-              className="bg-card border border-border hover:border-primary/20 rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm hover:shadow-md transition-all duration-150 group"
+              className="bg-card/85 backdrop-blur-md border border-border/80 hover:border-primary/25 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm hover:shadow-md hover:scale-[1.01] hover:bg-card transition-all duration-300 group"
             >
               {/* Info block */}
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2.5 bg-muted/40 rounded-lg group-hover:scale-105 transition-transform">
+                <div className="p-2.5 bg-muted/40 rounded-xl group-hover:scale-105 transition-transform">
                   {getFileIcon(file.file_type)}
                 </div>
                 <div className="min-w-0">
                   <h4 className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors" title={file.filename}>
                     {file.filename}
                   </h4>
-                  <div className="flex gap-2 text-[9px] text-muted-foreground mt-0.5">
+                  <div className="flex gap-2 text-[9px] text-muted-foreground mt-0.5 font-medium">
                     <span>{formatSize(file.file_size)}</span>
                     <span>•</span>
                     <span>{new Date(file.created_at).toLocaleDateString()}</span>
@@ -340,11 +341,11 @@ export const Documents: React.FC = () => {
               </div>
 
               {/* Actions row */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1">
                 {/* Preview */}
                 <button
                   onClick={() => handlePreview(file)}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className="p-1.5 rounded-lg text-muted-foreground/85 hover:bg-accent hover:text-foreground transition-all duration-150"
                   title="Preview document"
                 >
                   <Eye size={13} />
@@ -353,7 +354,7 @@ export const Documents: React.FC = () => {
                 {/* Download */}
                 <button
                   onClick={() => handleDownload(file)}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className="p-1.5 rounded-lg text-muted-foreground/85 hover:bg-accent hover:text-foreground transition-all duration-150"
                   title="Download file"
                 >
                   <Download size={13} />

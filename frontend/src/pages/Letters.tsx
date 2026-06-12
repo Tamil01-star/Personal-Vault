@@ -183,7 +183,7 @@ export const Letters: React.FC = () => {
     <div className="max-w-6xl mx-auto h-[calc(100vh-8.5rem)] flex flex-col md:flex-row gap-6 items-stretch">
       
       {/* LEFT PANEL: LETTERS LIST */}
-      <div className="w-full md:w-80 bg-card border border-border rounded-2xl flex flex-col overflow-hidden shrink-0 shadow-sm">
+      <div className="w-full md:w-80 bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl flex flex-col overflow-hidden shrink-0 shadow-sm">
         
         {/* Header & Add Button */}
         <div className="p-4 border-b border-border flex items-center justify-between gap-3">
@@ -194,7 +194,7 @@ export const Letters: React.FC = () => {
           
           <button
             onClick={handleCreateLetter}
-            className="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors"
+            className="p-2 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-sm hover:shadow active:scale-95 rounded-xl transition-all"
             title="Compose new letter"
           >
             <Plus size={16} />
@@ -202,10 +202,10 @@ export const Letters: React.FC = () => {
         </div>
 
         {/* Searching & Filter pills */}
-        <div className="p-3 border-b border-border space-y-2 bg-muted/20">
+        <div className="p-3 border-b border-border space-y-2 bg-muted/10">
           {/* Search */}
           <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center text-muted-foreground">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground/80">
               <Search size={14} />
             </span>
             <input
@@ -213,7 +213,7 @@ export const Letters: React.FC = () => {
               placeholder="Search letters..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-1.5 pl-8 pr-3 text-xs placeholder-muted-foreground focus:outline-none transition-colors"
+              className="w-full premium-input pl-9 pr-3 py-1.5 text-xs focus:ring-4 focus:ring-primary/10 transition-all"
             />
           </div>
           
@@ -223,10 +223,10 @@ export const Letters: React.FC = () => {
               <button
                 key={f}
                 onClick={() => setStatusFilter(f)}
-                className={`flex-1 py-1 rounded-lg text-[10px] font-bold border transition-colors uppercase tracking-wider ${
+                className={`flex-1 py-1 rounded-lg text-[10px] font-bold border transition-all uppercase tracking-wider ${
                   statusFilter === f
-                    ? 'bg-primary border-primary text-primary-foreground'
-                    : 'bg-background border-border text-muted-foreground hover:bg-accent'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-transparent text-white shadow-sm shadow-blue-500/5'
+                    : 'bg-card border-border text-muted-foreground hover:bg-accent/60'
                 }`}
               >
                 {f}
@@ -257,8 +257,8 @@ export const Letters: React.FC = () => {
                 <div
                   key={letter.id}
                   onClick={() => loadLetterIntoEditor(letter)}
-                  className={`p-4 cursor-pointer hover:bg-accent/40 transition-colors flex justify-between items-start gap-2 relative group ${
-                    isActive ? 'bg-primary/5 border-l-4 border-l-primary' : ''
+                  className={`p-4 cursor-pointer hover:bg-accent/40 border-l-4 transition-all flex justify-between items-start gap-2 relative group ${
+                    isActive ? 'bg-primary/5 border-l-primary' : 'border-l-transparent'
                   }`}
                 >
                   <div className="min-w-0 flex-1">
@@ -280,7 +280,7 @@ export const Letters: React.FC = () => {
 
                   <button
                     onClick={(e) => handleDeleteClick(letter, e)}
-                    className="p-1 rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="p-1.5 rounded-lg text-muted-foreground/60 hover:bg-rose-500/10 hover:text-rose-600 transition-colors"
                     title="Delete letter permanently"
                   >
                     <Trash2 size={12} />
@@ -293,7 +293,7 @@ export const Letters: React.FC = () => {
       </div>
 
       {/* RIGHT PANEL: EDITOR WORKSPACE */}
-      <div className="flex-1 bg-card border border-border rounded-2xl flex flex-col overflow-hidden shadow-sm">
+      <div className="flex-1 bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl flex flex-col overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
         {activeLetter ? (
           <>
             {/* Editor Top Title/Status block */}
@@ -311,7 +311,7 @@ export const Letters: React.FC = () => {
                 <select
                   value={editorStatus}
                   onChange={(e) => setEditorStatus(e.target.value as 'draft' | 'saved')}
-                  className="bg-background border border-border focus:border-primary rounded-lg py-1 px-2.5 text-[10px] font-bold uppercase focus:outline-none tracking-wide"
+                  className="bg-card border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-lg py-1 px-2.5 text-[10px] font-bold uppercase focus:outline-none tracking-wide text-foreground shadow-sm transition-all"
                 >
                   <option value="draft">Draft</option>
                   <option value="saved">Completed</option>
@@ -319,7 +319,7 @@ export const Letters: React.FC = () => {
 
                 <button
                   onClick={handleSaveLetter}
-                  className="bg-primary text-primary-foreground hover:bg-indigo-500 py-1.5 px-3.5 rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+                  className="btn-primary py-1.5 px-3.5 text-xs flex items-center gap-1.5"
                 >
                   <CheckCircle size={13} />
                   <span>Save Letter</span>

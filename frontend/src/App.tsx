@@ -46,7 +46,7 @@ export const App: React.FC = () => {
       <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
 
       {/* Main Content Workspace (adds padding-left on md screens, adds padding-bottom on mobile for BottomNav) */}
-      <main className="flex-1 flex flex-col min-h-screen md:pl-64 pb-16 md:pb-0">
+      <main className="flex-1 flex flex-col min-h-screen md:pl-72 pb-16 md:pb-0">
         
         {/* Sticky Header */}
         <header className="h-16 border-b border-border bg-card/40 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-6">

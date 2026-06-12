@@ -240,30 +240,30 @@ export const Profile: React.FC = () => {
       </div>
 
       {/* Vault Statistics Block */}
-      <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-3">
+      <div className="bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl p-5 shadow-sm space-y-3">
         <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
           <FileCheck size={16} className="text-primary" />
           Vault Summary
         </h3>
         
         <div className="grid grid-cols-3 gap-2.5 text-center">
-          <div className="p-3 bg-muted/30 rounded-xl">
+          <div className="p-3 bg-muted/10 border border-border/40 rounded-xl">
             <span className="block text-base font-bold text-foreground">
               {statsLoading ? '...' : stats.passwords}
             </span>
-            <span className="text-[10px] text-muted-foreground">Logins</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Logins</span>
           </div>
-          <div className="p-3 bg-muted/30 rounded-xl">
+          <div className="p-3 bg-muted/10 border border-border/40 rounded-xl">
             <span className="block text-base font-bold text-foreground">
               {statsLoading ? '...' : stats.notes}
             </span>
-            <span className="text-[10px] text-muted-foreground">Notes</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Notes</span>
           </div>
-          <div className="p-3 bg-muted/30 rounded-xl">
+          <div className="p-3 bg-muted/10 border border-border/40 rounded-xl">
             <span className="block text-base font-bold text-foreground">
               {statsLoading ? '...' : stats.diary}
             </span>
-            <span className="text-[10px] text-muted-foreground">Diaries</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Diaries</span>
           </div>
         </div>
       </div>
@@ -272,20 +272,20 @@ export const Profile: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* MOCK ANDROID SECURITY PARAMETERS */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl p-5 shadow-sm space-y-4 hover:shadow-md transition-shadow duration-300">
           <div>
             <h3 className="text-xs font-bold text-foreground flex items-center gap-2 mb-1">
               <Smartphone size={16} className="text-primary" />
               Android Hardware Security
             </h3>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] text-muted-foreground font-medium">
               Configure hardware lock controls for WebView Capacitor wrappers.
             </p>
           </div>
 
           <div className="space-y-3">
             {/* Toggle Biometrics */}
-            <div className="flex items-center justify-between p-3.5 bg-muted/20 border border-border/80 rounded-xl">
+            <div className="flex items-center justify-between p-3.5 bg-card border border-border/80 rounded-xl shadow-sm">
               <div className="flex items-center gap-2.5">
                 <Fingerprint size={18} className="text-primary" />
                 <div className="text-left">
@@ -296,7 +296,7 @@ export const Profile: React.FC = () => {
               <button
                 onClick={handleToggleBiometrics}
                 className={`w-10 h-5 rounded-full transition-colors relative ${
-                  biometricsEnabled ? 'bg-primary' : 'bg-slate-700'
+                  biometricsEnabled ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'
                 }`}
               >
                 <span className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.5 transition-all ${
@@ -306,7 +306,7 @@ export const Profile: React.FC = () => {
             </div>
 
             {/* Toggle FaceID */}
-            <div className="flex items-center justify-between p-3.5 bg-muted/20 border border-border/80 rounded-xl">
+            <div className="flex items-center justify-between p-3.5 bg-card border border-border/80 rounded-xl shadow-sm">
               <div className="flex items-center gap-2.5">
                 <Shield size={18} className="text-primary" />
                 <div className="text-left">
@@ -317,7 +317,7 @@ export const Profile: React.FC = () => {
               <button
                 onClick={handleToggleFaceUnlock}
                 className={`w-10 h-5 rounded-full transition-colors relative ${
-                  faceUnlockEnabled ? 'bg-primary' : 'bg-slate-700'
+                  faceUnlockEnabled ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'
                 }`}
               >
                 <span className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.5 transition-all ${
@@ -327,7 +327,7 @@ export const Profile: React.FC = () => {
             </div>
 
             {/* Toggle PIN Lock */}
-            <div className="flex items-center justify-between p-3.5 bg-muted/20 border border-border/80 rounded-xl">
+            <div className="flex items-center justify-between p-3.5 bg-card border border-border/80 rounded-xl shadow-sm">
               <div className="flex items-center gap-2.5">
                 <Smartphone size={18} className="text-primary" />
                 <div className="text-left">
@@ -340,7 +340,7 @@ export const Profile: React.FC = () => {
               <button
                 onClick={handleTogglePin}
                 className={`w-10 h-5 rounded-full transition-colors relative ${
-                  pinLockEnabled ? 'bg-primary' : 'bg-slate-700'
+                  pinLockEnabled ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'
                 }`}
               >
                 <span className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.5 transition-all ${
@@ -352,31 +352,31 @@ export const Profile: React.FC = () => {
         </div>
 
         {/* ACCOUNT MASTER PASSWORD CONTROL */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
           <form onSubmit={handlePasswordChange} className="space-y-3.5">
             <h3 className="text-xs font-bold text-foreground flex items-center gap-2 mb-1">
               <KeyRound size={16} className="text-primary" />
               Change Vault Master Password
             </h3>
             
-            {pwError && <div className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] rounded-lg">{pwError}</div>}
-            {pwSuccess && <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] rounded-lg">{pwSuccess}</div>}
+            {pwError && <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] rounded-lg font-medium">{pwError}</div>}
+            {pwSuccess && <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-[10px] rounded-lg font-medium">{pwSuccess}</div>}
 
             <div className="space-y-3.5">
               <div>
-                <label className="block text-[10px] font-semibold text-muted-foreground mb-1">Current Password</label>
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Current Password</label>
                 <div className="relative">
                   <input
                     type={showPasswords ? 'text' : 'password'}
                     required
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-2 px-3 text-xs focus:outline-none transition-colors"
+                    className="w-full premium-input py-2 px-3 text-xs focus:ring-4 focus:ring-primary/10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPasswords(!showPasswords)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground"
                   >
                     {showPasswords ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
@@ -384,24 +384,24 @@ export const Profile: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-semibold text-muted-foreground mb-1">New Password</label>
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1.5">New Password</label>
                 <input
                   type={showPasswords ? 'text' : 'password'}
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-2 px-3 text-xs focus:outline-none transition-colors"
+                  className="w-full premium-input py-2 px-3 text-xs focus:ring-4 focus:ring-primary/10"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-semibold text-muted-foreground mb-1">Confirm New Password</label>
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Confirm New Password</label>
                 <input
                   type={showPasswords ? 'text' : 'password'}
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-2 px-3 text-xs focus:outline-none transition-colors"
+                  className="w-full premium-input py-2 px-3 text-xs focus:ring-4 focus:ring-primary/10"
                 />
               </div>
             </div>
@@ -409,7 +409,7 @@ export const Profile: React.FC = () => {
             <button
               type="submit"
               disabled={pwLoading}
-              className="w-full bg-primary text-primary-foreground hover:bg-indigo-500 py-2 rounded-xl text-xs font-bold shadow-md shadow-primary/10 transition-colors"
+              className="btn-primary w-full py-2.5 text-xs shadow-md shadow-blue-500/10"
             >
               {pwLoading ? 'Saving...' : 'Update Master Password'}
             </button>
@@ -417,7 +417,7 @@ export const Profile: React.FC = () => {
         </div>
 
         {/* SYSTEM THEME ADJUSTMENTS */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-3">
+        <div className="bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl p-5 shadow-sm space-y-3 hover:shadow-md transition-shadow duration-300">
           <h3 className="text-xs font-bold text-foreground flex items-center gap-2 mb-1">
             <Sun size={16} className="text-primary" />
             Display Theme
@@ -425,8 +425,10 @@ export const Profile: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={toggleTheme}
-              className={`flex-1 py-3 border rounded-xl text-xs font-bold flex flex-col items-center gap-1.5 hover:bg-accent ${
-                theme === 'light' ? 'bg-primary/5 border-primary text-primary' : 'border-border text-muted-foreground'
+              className={`flex-1 py-3 border rounded-xl text-xs font-bold flex flex-col items-center gap-1.5 transition-all duration-300 hover:bg-accent/60 ${
+                theme === 'light'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-transparent text-white shadow-md shadow-blue-500/10'
+                  : 'bg-card border-border text-muted-foreground shadow-sm'
               }`}
             >
               <Sun size={16} />
@@ -434,8 +436,10 @@ export const Profile: React.FC = () => {
             </button>
             <button
               onClick={toggleTheme}
-              className={`flex-1 py-3 border rounded-xl text-xs font-bold flex flex-col items-center gap-1.5 hover:bg-accent ${
-                theme === 'dark' ? 'bg-primary/5 border-primary text-primary' : 'border-border text-muted-foreground'
+              className={`flex-1 py-3 border rounded-xl text-xs font-bold flex flex-col items-center gap-1.5 transition-all duration-300 hover:bg-accent/60 ${
+                theme === 'dark'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-transparent text-white shadow-md shadow-blue-500/10'
+                  : 'bg-card border-border text-muted-foreground shadow-sm'
               }`}
             >
               <Moon size={16} />
@@ -445,18 +449,18 @@ export const Profile: React.FC = () => {
         </div>
 
         {/* DATA BACKUP & DATA RESTORATION IMPORT */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
+        <div className="bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
           <div className="space-y-3">
             <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
               <Shield size={16} className="text-primary" />
               Backup & Recovery
             </h3>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
+            <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">
               Export passwords, notes, diaries, and letters in one JSON backup file.
             </p>
 
             {restoreStatus && (
-              <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-[10px] rounded-lg flex items-center gap-2 animate-pulse">
+              <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/25 text-indigo-500 text-[10px] rounded-lg flex items-center gap-2 animate-pulse font-medium">
                 <RefreshCw size={12} className="animate-spin" />
                 <span>{restoreStatus}</span>
               </div>
@@ -466,7 +470,7 @@ export const Profile: React.FC = () => {
               <button
                 onClick={handleBackupExport}
                 disabled={backupLoading}
-                className="flex items-center justify-center gap-1.5 border border-border bg-muted/20 hover:bg-accent text-foreground py-2 rounded-xl text-xs font-bold transition-colors"
+                className="flex items-center justify-center gap-1.5 border border-border/80 bg-card hover:bg-accent/60 text-foreground py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
               >
                 <Download size={14} />
                 <span>Backup</span>
@@ -483,7 +487,7 @@ export const Profile: React.FC = () => {
                 />
                 <label
                   htmlFor="profile-restore-input"
-                  className="flex items-center justify-center gap-1.5 border border-border bg-muted/20 hover:bg-accent text-foreground py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                  className="flex items-center justify-center gap-1.5 border border-border/80 bg-card hover:bg-accent/60 text-foreground py-2 rounded-xl text-xs font-bold cursor-pointer transition-all shadow-sm"
                 >
                   <Upload size={14} />
                   <span>Restore</span>

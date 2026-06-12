@@ -43,9 +43,25 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        'card': '20px',
+        'btn': '14px',
+        'input': '16px',
+        'modal': '24px',
+        sm: "14px",    // Match buttons
+        md: "16px",    // Match inputs
+        lg: "20px",    // Match cards
+        xl: "20px",    // Match cards
+        "2xl": "20px", // Match cards
+        "3xl": "24px", // Match modals
+      },
+      boxShadow: {
+        sm: '0 2px 8px -1px rgba(0, 0, 0, 0.02), 0 1px 3px 0 rgba(0, 0, 0, 0.01)',
+        md: '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 8px -1px rgba(0, 0, 0, 0.03)',
+        lg: '0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03)',
+        xl: '0 20px 40px -10px rgba(0, 0, 0, 0.07), 0 8px 16px -4px rgba(0, 0, 0, 0.04)',
+        '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.08)',
+        'premium': '0 10px 30px -10px rgba(37, 99, 235, 0.04), 0 1px 3px 0 rgba(0, 0, 0, 0.01)',
+        'premium-hover': '0 20px 40px -15px rgba(37, 99, 235, 0.08), 0 2px 8px 0 rgba(0, 0, 0, 0.02)'
       },
     },
   },

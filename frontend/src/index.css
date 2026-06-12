@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,35 +6,35 @@
 
 @layer base {
   :root {
-    --background: 241 245 249;      /* Slate 100 - distinct page backdrop */
-    --foreground: 15 23 42;         /* Slate 900 - dark text */
+    --background: 245 247 250;      /* Soft light grey backdrop #F5F7FA */
+    --foreground: 15 23 42;         /* Slate 900 */
     
-    --card: 255 255 255;            /* White card blocks */
+    --card: 255 255 255;            /* White */
     --card-foreground: 15 23 42;
     
     --popover: 255 255 255;
     --popover-foreground: 15 23 42;
     
-    --primary: 99 102 241;          /* Indigo 500 */
+    --primary: 37 99 235;           /* Deep Blue #2563EB */
     --primary-foreground: 255 255 255;
     
-    --secondary: 226 232 240;        /* Slate 200 - distinct from background */
-    --secondary-foreground: 15 23 42;
+    --secondary: 99 102 241;         /* Indigo #6366F1 */
+    --secondary-foreground: 255 255 255;
     
-    --muted: 226 232 240;
-    --muted-foreground: 71 85 105;   /* Slate 600 - high-contrast subtext */
+    --muted: 241 245 249;            /* Slate 100 */
+    --muted-foreground: 71 85 105;   /* Slate 600 - High-contrast text */
     
-    --accent: 238 242 255;           /* Indigo 50 */
-    --accent-foreground: 79 70 229;  /* Indigo 600 */
+    --accent: 239 246 255;           /* Deep Blue 50 */
+    --accent-foreground: 37 99 235;  /* Deep Blue 600 */
     
-    --destructive: 239 68 68;       /* Red 500 */
+    --destructive: 244 63 94;        /* Rose #F43F5E */
     --destructive-foreground: 255 255 255;
     
-    --border: 203 213 225;          /* Slate 300 - clear borders on cards/inputs */
-    --input: 203 213 225;
-    --ring: 99 102 241;
+    --border: 226 232 240;           /* Slate 200 */
+    --input: 226 232 240;
+    --ring: 37 99 235;
     
-    --radius: 0.75rem;
+    --radius: 20px;
   }
 
   .dark {
@@ -71,16 +71,49 @@
 @layer base {
   * {
     @apply border-border;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', 'Poppins', sans-serif;
   }
   
   body {
-    @apply bg-background text-foreground transition-colors duration-300;
+    @apply bg-background text-foreground transition-colors duration-300 min-h-screen;
+    background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.02) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.02) 0px, transparent 50%);
+  }
+
+  .dark body {
+    background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.01) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.01) 0px, transparent 50%);
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif;
     @apply tracking-tight font-semibold;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-card/85 border border-border shadow-sm hover:shadow-md hover:border-border/80 transition-all duration-300 rounded-card;
+  }
+  
+  .premium-input {
+    @apply bg-card border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-input px-4 py-2.5 text-sm transition-all outline-none placeholder-muted-foreground/60 text-foreground;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 active:scale-[0.98] transition-all duration-200 rounded-btn flex items-center justify-center gap-2 px-4 py-2.5 text-sm;
+  }
+
+  .btn-secondary {
+    @apply bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold shadow-md shadow-indigo-500/10 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-[0.98] transition-all duration-200 rounded-btn flex items-center justify-center gap-2 px-4 py-2.5 text-sm;
+  }
+
+  .btn-destructive {
+    @apply bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-semibold shadow-md shadow-rose-500/10 hover:shadow-lg hover:shadow-rose-500/20 active:scale-[0.98] transition-all duration-200 rounded-btn flex items-center justify-center gap-2 px-4 py-2.5 text-sm;
+  }
+
+  .btn-accent {
+    @apply bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold shadow-md shadow-emerald-500/10 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all duration-200 rounded-btn flex items-center justify-center gap-2 px-4 py-2.5 text-sm;
   }
 }
 

@@ -202,7 +202,7 @@ export const Notes: React.FC = () => {
     <div className="max-w-6xl mx-auto h-[calc(100vh-8.5rem)] flex flex-col md:flex-row gap-6 items-stretch">
       
       {/* LEFT COLUMN: NOTES LIST */}
-      <div className="w-full md:w-80 bg-card border border-border rounded-2xl flex flex-col overflow-hidden shrink-0 shadow-sm">
+      <div className="w-full md:w-80 bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl flex flex-col overflow-hidden shrink-0 shadow-sm">
         {/* Header & Add Button */}
         <div className="p-4 border-b border-border flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -212,7 +212,7 @@ export const Notes: React.FC = () => {
           
           <button
             onClick={handleCreateNote}
-            className="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors"
+            className="p-2 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-sm hover:shadow active:scale-95 rounded-xl transition-all"
             title="Create a new note"
           >
             <Plus size={16} />
@@ -222,7 +222,7 @@ export const Notes: React.FC = () => {
         {/* Search Notes */}
         <div className="p-3 border-b border-border">
           <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center text-muted-foreground">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground/80">
               <Search size={14} />
             </span>
             <input
@@ -230,7 +230,7 @@ export const Notes: React.FC = () => {
               placeholder="Search notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-1.5 pl-8 pr-3 text-xs placeholder-muted-foreground focus:outline-none transition-colors"
+              className="w-full premium-input pl-9 pr-3 py-1.5 text-xs focus:ring-4 focus:ring-primary/10 transition-all"
             />
           </div>
         </div>
@@ -258,8 +258,8 @@ export const Notes: React.FC = () => {
                 <div
                   key={note.id}
                   onClick={() => loadNoteIntoEditor(note)}
-                  className={`p-4 cursor-pointer hover:bg-accent/40 transition-colors flex justify-between items-start gap-2 relative group ${
-                    isActive ? 'bg-primary/5 border-l-4 border-l-primary' : ''
+                  className={`p-4 cursor-pointer hover:bg-accent/40 border-l-4 transition-all flex justify-between items-start gap-2 relative group ${
+                    isActive ? 'bg-primary/5 border-l-primary' : 'border-l-transparent'
                   }`}
                 >
                   <div className="min-w-0 flex-1">
@@ -277,7 +277,7 @@ export const Notes: React.FC = () => {
 
                   <button
                     onClick={(e) => handleDeleteClick(note, e)}
-                    className="p-1 rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="p-1.5 rounded-lg text-muted-foreground/60 hover:bg-rose-500/10 hover:text-rose-600 transition-colors"
                     title="Delete note permanently"
                   >
                     <Trash2 size={12} />
@@ -290,7 +290,7 @@ export const Notes: React.FC = () => {
       </div>
 
       {/* RIGHT COLUMN: RICH TEXT EDITOR WORKSPACE */}
-      <div className="flex-1 bg-card border border-border rounded-2xl flex flex-col overflow-hidden shadow-sm">
+      <div className="flex-1 bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl flex flex-col overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
         {activeNote ? (
           <>
             {/* Editor Header Title & Auto Save Status */}
@@ -326,24 +326,24 @@ export const Notes: React.FC = () => {
             </div>
 
             {/* Rich Editor Formatting Toolbar */}
-            <div className="px-4 py-2 border-b border-border bg-muted/20 flex flex-wrap items-center gap-1">
+            <div className="px-4 py-2 border-b border-border bg-muted/10 flex flex-wrap items-center gap-1">
               <button
                 onClick={() => execCmd('bold')}
-                className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-accent/80 text-muted-foreground hover:text-foreground transition-all"
                 title="Bold"
               >
                 <Bold size={14} />
               </button>
               <button
                 onClick={() => execCmd('italic')}
-                className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-accent/80 text-muted-foreground hover:text-foreground transition-all"
                 title="Italic"
               >
                 <Italic size={14} />
               </button>
               <button
                 onClick={() => execCmd('underline')}
-                className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-accent/80 text-muted-foreground hover:text-foreground transition-all"
                 title="Underline"
               >
                 <Underline size={14} />
@@ -353,21 +353,21 @@ export const Notes: React.FC = () => {
 
               <button
                 onClick={() => execCmd('insertUnorderedList')}
-                className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-accent/80 text-muted-foreground hover:text-foreground transition-all"
                 title="Bullet List"
               >
                 <List size={14} />
               </button>
               <button
                 onClick={() => execCmd('insertOrderedList')}
-                className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-accent/80 text-muted-foreground hover:text-foreground transition-all"
                 title="Numbered List"
               >
                 <ListOrdered size={14} />
               </button>
               <button
                 onClick={() => execCmd('formatBlock', 'blockquote')}
-                className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-accent/80 text-muted-foreground hover:text-foreground transition-all"
                 title="Blockquote"
               >
                 <Quote size={14} />

@@ -313,67 +313,71 @@ export const Passwords: React.FC = () => {
             return (
               <div
                 key={rec.id}
-                className="bg-card border border-border hover:border-primary/30 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group relative overflow-hidden"
+                className="bg-card/80 backdrop-blur-md border border-border/80 hover:border-primary/25 rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.01] hover:bg-card transition-all duration-300 flex flex-col justify-between relative overflow-hidden group animate-in fade-in-50 duration-200"
               >
                 {/* Card Top */}
                 <div>
-                  <div className="flex justify-between items-start gap-2 mb-3">
-                    <div>
-                      <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        {rec.category}
-                      </span>
-                      <h3 className="text-sm font-bold text-foreground mt-1.5 truncate group-hover:text-primary transition-colors">
-                        {rec.website_name}
-                      </h3>
+                  <div className="flex justify-between items-start gap-2 mb-4">
+                    <div className="flex items-center gap-3">
+                      {/* Logo placeholder */}
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 border border-primary/10 flex items-center justify-center text-primary font-bold text-sm shadow-sm select-none">
+                        {rec.website_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          {rec.category}
+                        </span>
+                        <h3 className="text-sm font-bold text-foreground mt-1 truncate group-hover:text-primary transition-colors">
+                          {rec.website_name}
+                        </h3>
+                      </div>
                     </div>
 
                     {/* Quick Edit/Delete Panel */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleOpenEditForm(rec)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                        className="p-1.5 rounded-lg text-muted-foreground/70 hover:bg-accent hover:text-foreground transition-all duration-150"
                         title="Edit credentials"
                       >
-                        <Edit size={14} />
+                        <Edit size={13.5} />
                       </button>
                       <button
                         onClick={() => handleDeleteClick(rec.id, rec.website_name)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                        className="p-1.5 rounded-lg text-muted-foreground/70 hover:bg-rose-500/10 hover:text-rose-600 transition-all duration-150"
                         title="Delete permanently"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={13.5} />
                       </button>
                     </div>
                   </div>
 
                   {/* Credentials Fields */}
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Username:</span>
-                      <span className="font-medium text-foreground truncate pl-4 select-all">{rec.username}</span>
+                  <div className="space-y-2.5 text-xs bg-muted/20 border border-border/40 p-3.5 rounded-xl font-medium">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground font-semibold">Username:</span>
+                      <span className="font-semibold text-foreground truncate pl-4 select-all">{rec.username}</span>
                     </div>
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-muted-foreground shrink-0">Password:</span>
-                      <div className="flex items-center gap-1 min-w-0">
-                        <span className="font-mono text-foreground font-semibold truncate select-all">
-                          {isRevealed ? rec.password : '••••••••••••'}
-                        </span>
-                      </div>
+                      <span className="text-muted-foreground font-semibold shrink-0">Password:</span>
+                      <span className="font-mono text-foreground font-bold truncate select-all">
+                        {isRevealed ? rec.password : '••••••••••••'}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Card Action Row */}
-                <div className="mt-4 pt-3.5 border-t border-border/60 flex justify-between items-center gap-2">
-                  <span className="text-[9px] text-muted-foreground">
+                <div className="mt-4 pt-3 border-t border-border/60 flex justify-between items-center gap-2">
+                  <span className="text-[9px] text-muted-foreground font-medium">
                     Updated: {new Date(rec.updated_at).toLocaleDateString()}
                   </span>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     {/* Show/Hide */}
                     <button
                       onClick={() => toggleReveal(rec.id)}
-                      className="p-1.5 rounded-lg border border-border text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+                      className="p-1.5 rounded-lg border border-border text-muted-foreground hover:bg-accent hover:text-foreground transition-all shadow-sm"
                       title={isRevealed ? 'Hide Password' : 'Show Password'}
                     >
                       {isRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
@@ -384,12 +388,12 @@ export const Passwords: React.FC = () => {
                       onClick={() => handleCopy(rec.id, rec.password || '')}
                       className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-all ${
                         isCopied 
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' 
-                          : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'
+                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm shadow-emerald-500/5' 
+                          : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground shadow-sm'
                       }`}
                       title="Copy Password"
                     >
-                      {isCopied ? <Check size={13} /> : <Copy size={13} />}
+                      {isCopied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
                     </button>
                   </div>
                 </div>

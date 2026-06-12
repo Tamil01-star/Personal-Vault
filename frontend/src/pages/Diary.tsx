@@ -239,20 +239,21 @@ export const Diary: React.FC = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card border border-border p-6 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-gradient-to-br from-amber-500/5 via-orange-500/5 to-card/95 border border-amber-500/10 p-6 rounded-2xl shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl -mr-10 -mt-10" />
+        <div className="flex items-center gap-3 relative z-10">
           <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl">
             <CalendarIcon size={22} />
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight text-foreground">Daily Diary Logs</h2>
-            <p className="text-muted-foreground text-xs">Write private logs and search memories chronologically.</p>
+            <p className="text-muted-foreground text-xs font-medium">Write private logs and search memories chronologically.</p>
           </div>
         </div>
 
         {/* Search Entries */}
         <div className="relative w-full sm:w-72">
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground/80">
             <Search size={14} />
           </span>
           <input
@@ -260,7 +261,7 @@ export const Diary: React.FC = () => {
             placeholder="Search diary entries..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-2 pl-8.5 pr-4 text-xs placeholder-muted-foreground focus:outline-none transition-colors"
+            className="w-full premium-input pl-9.5 pr-4 py-2 text-xs focus:ring-4 focus:ring-amber-500/10 transition-all"
           />
 
           {/* Search results dropdown */}
@@ -284,7 +285,7 @@ export const Diary: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-stretch">
         
         {/* CALENDAR VIEW PANEL */}
-        <div className="bg-card border border-border rounded-2xl p-5 md:col-span-2 shadow-sm flex flex-col justify-between h-[420px]">
+        <div className="bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl p-5 md:col-span-2 shadow-sm flex flex-col justify-between h-[420px] hover:shadow-md transition-shadow duration-300">
           <div>
             {/* Calendar header */}
             <div className="flex justify-between items-center mb-4">
@@ -295,13 +296,13 @@ export const Diary: React.FC = () => {
               <div className="flex items-center gap-1">
                 <button
                   onClick={prevMonth}
-                  className="p-1 rounded hover:bg-accent border border-border text-muted-foreground hover:text-foreground"
+                  className="p-1.5 rounded-xl hover:bg-accent/80 border border-border text-muted-foreground hover:text-foreground bg-card shadow-sm transition-all"
                 >
                   <ChevronLeft size={14} />
                 </button>
                 <button
                   onClick={nextMonth}
-                  className="p-1 rounded hover:bg-accent border border-border text-muted-foreground hover:text-foreground"
+                  className="p-1.5 rounded-xl hover:bg-accent/80 border border-border text-muted-foreground hover:text-foreground bg-card shadow-sm transition-all"
                 >
                   <ChevronRight size={14} />
                 </button>
@@ -325,7 +326,7 @@ export const Diary: React.FC = () => {
         </div>
 
         {/* DIARY ENTRY DETAILS WORKSPACE */}
-        <div className="bg-card border border-border rounded-2xl p-6 md:col-span-3 shadow-sm flex flex-col justify-between min-h-[350px]">
+        <div className="bg-card/85 backdrop-blur-md border border-border/80 rounded-2xl p-6 md:col-span-3 shadow-sm flex flex-col justify-between min-h-[350px] hover:shadow-md transition-shadow duration-300">
           <div>
             <div className="flex justify-between items-center border-b border-border/80 pb-3 mb-4 flex-wrap gap-2">
               <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
@@ -337,13 +338,13 @@ export const Diary: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="text-xs text-primary font-semibold hover:underline"
+                    className="text-xs text-primary font-bold hover:underline transition-all"
                   >
                     Edit Log
                   </button>
                   <button
                     onClick={() => handleDeleteClick(activeEntry)}
-                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600 transition-colors"
                     title="Delete log permanently"
                   >
                     <Trash2 size={13} />
@@ -360,11 +361,11 @@ export const Diary: React.FC = () => {
                   onChange={(e) => setEditorContent(e.target.value)}
                   placeholder={`Dear Diary, today was...`}
                   rows={9}
-                  className="w-full bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-3 px-4 text-xs placeholder-muted-foreground focus:outline-none resize-none leading-relaxed transition-colors"
+                  className="w-full premium-input py-3 px-4 text-xs placeholder-muted-foreground resize-none leading-relaxed focus:ring-4 focus:ring-amber-500/10 transition-all"
                 />
               </div>
             ) : (
-              <div className="text-xs text-foreground leading-relaxed whitespace-pre-wrap max-h-[280px] overflow-y-auto bg-muted/20 p-4 rounded-xl border border-border/50">
+              <div className="text-xs text-foreground leading-relaxed whitespace-pre-wrap max-h-[280px] overflow-y-auto bg-muted/20 p-4 rounded-xl border border-border/40 font-medium">
                 {activeEntry.content}
               </div>
             )}
@@ -379,14 +380,14 @@ export const Diary: React.FC = () => {
                     setIsEditing(false);
                     setEditorContent(activeEntry.content);
                   }}
-                  className="px-3.5 py-1.5 border border-border rounded-xl text-xs font-semibold hover:bg-accent transition-colors"
+                  className="px-3.5 py-1.5 border border-border rounded-xl text-xs font-semibold hover:bg-accent/80 bg-card transition-colors shadow-sm"
                 >
                   Cancel
                 </button>
               )}
               <button
                 onClick={handleSaveEntry}
-                className="px-4 py-1.5 bg-primary text-primary-foreground hover:bg-indigo-500 rounded-xl text-xs font-semibold shadow-md shadow-primary/10 transition-colors"
+                className="btn-primary px-4 py-1.5 text-xs shadow-md shadow-blue-500/10"
               >
                 Save Diary Log
               </button>
