@@ -78,9 +78,7 @@ export const Auth: React.FC = () => {
       if (result.otp) {
         setSimulatedOtp(result.otp);
       }
-      setTimeout(() => {
-        setMode('reset');
-      }, 1500);
+      setMode('reset');
     } catch (err: any) {
       setError(err.message || 'Error occurred. Please verify your mobile number.');
     } finally {
