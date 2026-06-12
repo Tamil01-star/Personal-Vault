@@ -46,6 +46,12 @@ const initDb = async () => {
     } else {
       console.log("Database tables verified:", tablesRes.rows.map(r => r.table_name).join(', '));
     }
+
+    // Auto-migrate: Add email column if not present in users table
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE;
+    `);
+    console.log("Database schema auto-migrations applied successfully.");
   } catch (err) {
     console.error("Database connection or initialization test failed:", err.message);
   }

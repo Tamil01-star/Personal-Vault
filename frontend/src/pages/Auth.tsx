@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { ShieldAlert, KeyRound, Phone, User, Eye, EyeOff, CheckCircle, Sun, Moon } from 'lucide-react';
-import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from 'firebase/auth';
-import { auth as firebaseAuth } from '../config/firebase';
-import { API_BASE_URL } from '../context/AuthContext';
+import { ShieldAlert, KeyRound, Phone, User, Eye, EyeOff, Sun, Moon, Mail } from 'lucide-react';
 
 type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
 
 export const Auth: React.FC = () => {
-  const { login, register, forgotPassword } = useAuth();
+  const { login, register, forgotPassword, resetPassword } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
   const [mode, setMode] = useState<AuthMode>('login');
   
   // Fields
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
   const [usernameOrMobile, setUsernameOrMobile] = useState('');
@@ -27,14 +25,10 @@ export const Auth: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [simulatedOtp, setSimulatedOtp] = useState<string | null>(null);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [useTestMode, setUseTestMode] = useState(false);
 
   const resetMessages = () => {
     setError(null);
     setSuccess(null);
-    setSimulatedOtp(null);
   };
 
   const handleModeChange = (newMode: AuthMode) => {
@@ -58,13 +52,14 @@ export const Auth: React.FC = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !mobileNumber || !password) return setError('Please fill in all fields.');
+    if (!username || !email || !mobileNumber || !password) return setError('Please fill in all fields.');
+    if (!email.includes('@')) return setError('Please enter a valid email address.');
     if (mobileNumber.length < 10) return setError('Mobile number must be at least 10 digits.');
     if (password.length < 6) return setError('Password must be at least 6 characters.');
     setError(null);
     setIsLoading(true);
     try {
-      await register(username, mobileNumber, password);
+      await register(username, email, mobileNumber, password);
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
     } finally {
@@ -74,50 +69,15 @@ export const Auth: React.FC = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mobileNumber) return setError('Please enter your registered mobile number.');
+    if (!email) return setError('Please enter your registered email address.');
     setError(null);
     setIsLoading(true);
     try {
-      // 1. Verify if mobile number is registered in our local DB first
-      await forgotPassword(mobileNumber);
-      
-      // Clear existing verifier if it exists to avoid "reCAPTCHA already rendered"
-      if ((window as any).recaptchaVerifier) {
-        try {
-          (window as any).recaptchaVerifier.clear();
-        } catch (e) {
-          console.error('Error clearing recaptcha verifier:', e);
-        }
-        const container = document.getElementById('recaptcha-container');
-        if (container) {
-          container.innerHTML = '';
-        }
-      }
-
-      // Set Firebase test setting based on toggled state
-      firebaseAuth.settings.appVerificationDisabledForTesting = useTestMode;
-
-      // 2. Initialize invisible reCAPTCHA verifier
-      const recaptchaVerifier = new RecaptchaVerifier(firebaseAuth, 'recaptcha-container', {
-        size: 'invisible'
-      });
-      (window as any).recaptchaVerifier = recaptchaVerifier;
-      
-      // 3. Format mobile number (+91 for India default if missing)
-      const formattedPhone = mobileNumber.startsWith('+') ? mobileNumber : `+91${mobileNumber}`;
-      
-      // 4. Trigger Firebase SMS
-      const confirmation = await signInWithPhoneNumber(firebaseAuth, formattedPhone, recaptchaVerifier);
-      setConfirmationResult(confirmation);
-      
-      setSuccess(
-        useTestMode
-          ? 'Test Mode: Session initialized. Please enter the Test OTP code you configured in your Firebase Console!'
-          : 'A real SMS verification code has been sent to your mobile phone!'
-      );
+      const res = await forgotPassword(email);
+      setSuccess(res.message || 'A verification OTP has been sent to your email address!');
       setMode('reset');
     } catch (err: any) {
-      setError(err.message || 'Error occurred. Please verify your mobile number.');
+      setError(err.message || 'Error occurred. Please verify your email.');
     } finally {
       setIsLoading(false);
     }
@@ -125,36 +85,18 @@ export const Auth: React.FC = () => {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mobileNumber || !otp || !newPassword) return setError('Please fill in all fields.');
+    if (!email || !otp || !newPassword) return setError('Please fill in all fields.');
     if (newPassword.length < 6) return setError('New password must be at least 6 characters.');
-    if (!confirmationResult) return setError('Verification session expired. Please request a new OTP.');
     
     setError(null);
     setIsLoading(true);
     try {
-      // 1. Confirm code with Firebase
-      const userCredential = await confirmationResult.confirm(otp);
-      
-      // 2. Retrieve Firebase JWT Token
-      const idToken = await userCredential.user.getIdToken();
-      
-      // 3. Send verified token to backend
-      const res = await fetch(`${API_BASE_URL}/auth/reset-password-firebase`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, mobile_number: mobileNumber, new_password: newPassword })
-      });
-      
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Server rejected password reset.');
-      
+      await resetPassword(email, otp, newPassword);
       setSuccess('Password reset successful! You can now log in.');
-      setSimulatedOtp(null);
-      setConfirmationResult(null);
       setTimeout(() => {
         setMode('login');
         setPassword('');
-        setUsernameOrMobile(mobileNumber);
+        setUsernameOrMobile(email);
         resetMessages();
       }, 2000);
     } catch (err: any) {
@@ -193,24 +135,13 @@ export const Auth: React.FC = () => {
           </p>
         </div>
 
-        {/* Display Simulated OTP Alert Banner */}
-        {simulatedOtp && (
-          <div className="mb-4 p-3.5 bg-indigo-500/10 border border-indigo-500/25 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs flex flex-col gap-1.5 font-medium animate-pulse">
-            <span className="font-bold flex items-center gap-1.5">
-              <CheckCircle size={14} className="text-indigo-500 dark:text-indigo-400" />
-              Simulated Mobile SMS OTP Code
-            </span>
-            <p>Your OTP verification code is: <strong className="text-foreground text-sm tracking-widest bg-muted border border-border px-2 py-0.5 rounded ml-1 font-bold">{simulatedOtp}</strong></p>
-          </div>
-        )}
-
         {/* Alert banners */}
         {error && (
           <div className="mb-4 p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 rounded-xl text-xs font-semibold">
             {error}
           </div>
         )}
-        {success && !simulatedOtp && (
+        {success && (
           <div className="mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-xl text-xs font-semibold">
             {success}
           </div>
@@ -220,14 +151,14 @@ export const Auth: React.FC = () => {
         {mode === 'login' && (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">Username or Mobile Number</label>
+              <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">Username, Email, or Mobile</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted-foreground/85">
                   <User size={16} />
                 </span>
                 <input
                   type="text"
-                  placeholder="Enter username or mobile"
+                  placeholder="Enter username, email, or mobile"
                   value={usernameOrMobile}
                   onChange={(e) => setUsernameOrMobile(e.target.value)}
                   className="w-full premium-input pl-10 pr-4 py-2.5 text-sm transition-all focus:ring-4 focus:ring-primary/10"
@@ -308,6 +239,22 @@ export const Auth: React.FC = () => {
             </div>
 
             <div>
+              <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">Email Address</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted-foreground/85">
+                  <Mail size={16} />
+                </span>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full premium-input pl-10 pr-4 py-2.5 text-sm transition-all focus:ring-4 focus:ring-primary/10"
+                />
+              </div>
+            </div>
+
+            <div>
               <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">Mobile Number</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted-foreground/85">
@@ -351,7 +298,7 @@ export const Auth: React.FC = () => {
               disabled={isLoading}
               className="btn-primary w-full py-2.5 text-sm shadow-md shadow-blue-500/15 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:scale-100 transition-all duration-200 mt-2"
             >
-              {isLoading ? 'Creating Vault...' : 'Create Secure Vault'}
+              {isLoading ? 'Creating Account...' : 'Create Master Vault'}
             </button>
 
             <div className="text-center text-muted-foreground text-xs mt-6 font-medium">
@@ -371,45 +318,20 @@ export const Auth: React.FC = () => {
         {mode === 'forgot' && (
           <form onSubmit={handleForgotPassword} className="space-y-4">
             <p className="text-xs text-muted-foreground font-medium leading-relaxed mb-4 text-center">
-              Enter your registered mobile number below to verify your phone number and reset your master password.
+              Enter your registered email address below. We will send a 6-digit OTP verification code to verify your identity and reset your password.
             </p>
 
-            <div className="flex items-start space-x-2 bg-slate-50 border border-slate-200/60 p-3 rounded-xl">
-              <input
-                type="checkbox"
-                id="test-mode-toggle"
-                checked={useTestMode}
-                onChange={(e) => setUseTestMode(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary/20"
-              />
-              <div className="flex-1">
-                <label htmlFor="test-mode-toggle" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">
-                  Enable Firebase Test Mode (Fictional Numbers)
-                </label>
-                <p className="text-[10px] text-slate-500 mt-0.5 leading-normal">
-                  Bypasses the Firebase SMS billing requirement. Fictional phone numbers and mock OTP codes must be configured first in your Firebase Console.
-                </p>
-              </div>
-            </div>
-
-            {useTestMode && (
-              <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200/50 p-2.5 rounded-xl leading-normal space-y-1">
-                <p className="font-bold">⚠️ Test Mode Active</p>
-                <p>Ensure your test phone number (e.g. <code>+919999999999</code>) and test code (e.g. <code>123456</code>) are added under <strong>Firebase Console &gt; Authentication &gt; Sign-in method &gt; Phone &gt; Phone numbers for testing</strong>.</p>
-              </div>
-            )}
-
             <div>
-              <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">Mobile Number</label>
+              <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">Email Address</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted-foreground/85">
-                  <Phone size={16} />
+                  <Mail size={16} />
                 </span>
                 <input
-                  type="tel"
-                  placeholder={useTestMode ? "e.g., +919999999999" : "Enter registered mobile"}
-                  value={mobileNumber}
-                  onChange={(e) => setMobileNumber(e.target.value)}
+                  type="email"
+                  placeholder="Enter registered email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full premium-input pl-10 pr-4 py-2.5 text-sm transition-all focus:ring-4 focus:ring-primary/10"
                 />
               </div>
@@ -420,7 +342,7 @@ export const Auth: React.FC = () => {
               disabled={isLoading}
               className="btn-primary w-full py-2.5 text-sm shadow-md shadow-blue-500/15 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:scale-100 transition-all duration-200"
             >
-              {isLoading ? 'Verifying...' : 'Send OTP Verification'}
+              {isLoading ? 'Sending OTP...' : 'Send OTP Verification'}
             </button>
 
             <div className="text-center mt-4">
@@ -476,7 +398,7 @@ export const Auth: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full py-2.5 text-sm shadow-md shadow-blue-500/15 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:scale-100 transition-all duration-200"
+              className="btn-primary w-full py-2.5 text-sm shadow-md shadow-blue-500/15 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:scale-100 transition-all duration-200 mt-2"
             >
               {isLoading ? 'Resetting...' : 'Reset Password'}
             </button>
@@ -492,7 +414,6 @@ export const Auth: React.FC = () => {
             </div>
           </form>
         )}
-        <div id="recaptcha-container"></div>
       </div>
     </div>
   );

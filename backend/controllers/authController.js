@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { sendOtpEmail } from '../config/email.js';
 
 // Initialize Firebase Admin SDK if not already initialized
 if (getApps().length === 0) {
@@ -13,28 +14,28 @@ if (getApps().length === 0) {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'vault_secure_jwt_secret_token_192837465_vault';
 
-// Memory store for OTPs (Mobile Number -> { otp, expiresAt })
+// Memory store for OTPs (Email -> { otp, expiresAt })
 const otpStore = new Map();
 
 /**
  * Register User
  */
 export async function register(req, res) {
-  const { username, mobile_number, password } = req.body;
+  const { username, email, mobile_number, password } = req.body;
   
-  if (!username || !mobile_number || !password) {
-    return res.status(400).json({ error: 'All fields (username, mobile number, password) are required.' });
+  if (!username || !email || !mobile_number || !password) {
+    return res.status(400).json({ error: 'All fields (username, email, mobile number, password) are required.' });
   }
   
   try {
-    // Check if user or mobile exists
+    // Check if user, email or mobile exists
     const checkUser = await pool.query(
-      'SELECT id FROM users WHERE username = $1 OR mobile_number = $2',
-      [username, mobile_number]
+      'SELECT id FROM users WHERE username = $1 OR mobile_number = $2 OR email = $3',
+      [username, mobile_number, email]
     );
     
     if (checkUser.rows.length > 0) {
-      return res.status(400).json({ error: 'Username or mobile number is already registered.' });
+      return res.status(400).json({ error: 'Username, email, or mobile number is already registered.' });
     }
     
     // Hash password
@@ -43,14 +44,14 @@ export async function register(req, res) {
     
     // Insert user
     const newUser = await pool.query(
-      'INSERT INTO users (username, mobile_number, password_hash) VALUES ($1, $2, $3) RETURNING id, username, mobile_number, created_at',
-      [username, mobile_number, passwordHash]
+      'INSERT INTO users (username, email, mobile_number, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, username, email, mobile_number, created_at',
+      [username, email, mobile_number, passwordHash]
     );
     
     const user = newUser.rows[0];
     
     // Generate token
-    const token = jwt.sign({ id: user.id, username: user.username, mobile_number: user.mobile_number }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, username: user.username, email: user.email, mobile_number: user.mobile_number }, JWT_SECRET, { expiresIn: '7d' });
     
     return res.status(201).json({
       message: 'Registration successful!',
@@ -64,24 +65,24 @@ export async function register(req, res) {
 }
 
 /**
- * Login User (supports username or mobile number)
+ * Login User (supports username, email, or mobile number)
  */
 export async function login(req, res) {
   const { usernameOrMobile, password } = req.body;
   
   if (!usernameOrMobile || !password) {
-    return res.status(400).json({ error: 'Username/Mobile and Password are required.' });
+    return res.status(400).json({ error: 'Username/Email/Mobile and Password are required.' });
   }
   
   try {
-    // Find user by username or mobile
+    // Find user by username, email, or mobile
     const findUser = await pool.query(
-      'SELECT * FROM users WHERE username = $1 OR mobile_number = $2',
-      [usernameOrMobile, usernameOrMobile]
+      'SELECT * FROM users WHERE username = $1 OR email = $1 OR mobile_number = $1',
+      [usernameOrMobile]
     );
     
     if (findUser.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid username/mobile number or password.' });
+      return res.status(401).json({ error: 'Invalid login credentials.' });
     }
     
     const user = findUser.rows[0];
@@ -89,11 +90,11 @@ export async function login(req, res) {
     // Check password
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid username/mobile number or password.' });
+      return res.status(401).json({ error: 'Invalid login credentials.' });
     }
     
     // Generate token
-    const token = jwt.sign({ id: user.id, username: user.username, mobile_number: user.mobile_number }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, username: user.username, email: user.email, mobile_number: user.mobile_number }, JWT_SECRET, { expiresIn: '7d' });
     
     return res.status(200).json({
       message: 'Login successful!',
@@ -101,6 +102,7 @@ export async function login(req, res) {
       user: {
         id: user.id,
         username: user.username,
+        email: user.email,
         mobile_number: user.mobile_number,
         created_at: user.created_at
       }
@@ -112,37 +114,38 @@ export async function login(req, res) {
 }
 
 /**
- * Forgot Password - Send OTP
+ * Forgot Password - Send OTP via Email
  */
 export async function forgotPassword(req, res) {
-  const { mobile_number } = req.body;
+  const { email } = req.body;
   
-  if (!mobile_number) {
-    return res.status(400).json({ error: 'Mobile number is required.' });
+  if (!email) {
+    return res.status(400).json({ error: 'Email address is required.' });
   }
   
   try {
-    const findUser = await pool.query('SELECT id FROM users WHERE mobile_number = $1', [mobile_number]);
+    const findUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (findUser.rows.length === 0) {
-      return res.status(404).json({ error: 'Mobile number not registered.' });
+      return res.status(404).json({ error: 'This email address is not registered.' });
     }
     
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes expiry
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
     
     // Save to memory store
-    otpStore.set(mobile_number, { otp, expiresAt });
+    otpStore.set(email, { otp, expiresAt });
     
-    console.log(`[OTP Verification Code for ${mobile_number}]: ${otp}`);
+    // Send email via SMTP helper
+    await sendOtpEmail(email, otp);
     
     return res.status(200).json({
-      message: 'OTP sent successfully (simulated). Check your console or use the returned code.',
-      otp // Returning it for easy simulation in frontend
+      message: 'OTP verification code sent successfully to your email address.',
+      otp: process.env.NODE_ENV !== 'production' ? otp : undefined
     });
   } catch (err) {
     console.error('Forgot password error:', err);
-    return res.status(500).json({ error: 'Internal server error occurred.' });
+    return res.status(500).json({ error: err.message || 'Internal server error occurred.' });
   }
 }
 
@@ -150,36 +153,36 @@ export async function forgotPassword(req, res) {
  * Reset Password with OTP
  */
 export async function resetPassword(req, res) {
-  const { mobile_number, otp, new_password } = req.body;
+  const { email, otp, new_password } = req.body;
   
-  if (!mobile_number || !otp || !new_password) {
-    return res.status(400).json({ error: 'All fields (mobile number, OTP, new password) are required.' });
+  if (!email || !otp || !new_password) {
+    return res.status(400).json({ error: 'All fields (email, OTP, new password) are required.' });
   }
   
   try {
-    const record = otpStore.get(mobile_number);
+    const record = otpStore.get(email);
     
     if (!record) {
-      return res.status(400).json({ error: 'No OTP requested for this mobile number.' });
+      return res.status(400).json({ error: 'No OTP requested for this email address.' });
     }
     
     if (Date.now() > record.expiresAt) {
-      otpStore.delete(mobile_number);
+      otpStore.delete(email);
       return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
     }
     
     if (record.otp !== otp) {
-      return res.status(400).json({ error: 'Invalid OTP code. Please try again.' });
+      return res.status(400).json({ error: 'Invalid OTP code. Please check your email and try again.' });
     }
     
     // OTP matches, update password
     const salt = await bcrypt.genSalt(10);
     const newPasswordHash = await bcrypt.hash(new_password, salt);
     
-    await pool.query('UPDATE users SET password_hash = $1 WHERE mobile_number = $2', [newPasswordHash, mobile_number]);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE email = $2', [newPasswordHash, email]);
     
     // Clear OTP
-    otpStore.delete(mobile_number);
+    otpStore.delete(email);
     
     return res.status(200).json({ message: 'Password has been reset successfully.' });
   } catch (err) {

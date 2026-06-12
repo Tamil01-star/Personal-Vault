@@ -25,10 +25,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (usernameOrMobile: string, password: string) => Promise<{ message: string }>;
-  register: (username: string, mobile_number: string, password: string) => Promise<{ message: string }>;
+  register: (username: string, email: string, mobile_number: string, password: string) => Promise<{ message: string }>;
   logout: () => void;
-  forgotPassword: (mobile_number: string) => Promise<{ message: string; otp?: string }>;
-  resetPassword: (mobile_number: string, otp: string, new_password: string) => Promise<{ message: string }>;
+  forgotPassword: (email: string) => Promise<{ message: string; otp?: string }>;
+  resetPassword: (email: string, otp: string, new_password: string) => Promise<{ message: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ message: string }>;
   getStats: () => Promise<Stats>;
   apiCall: (endpoint: string, options?: RequestInit) => Promise<any>;
@@ -76,11 +76,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { message: data.message };
   };
 
-  const register = async (username: string, mobile_number: string, password: string) => {
+  const register = async (username: string, email: string, mobile_number: string, password: string) => {
     const res = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, mobile_number, password })
+      body: JSON.stringify({ username, email, mobile_number, password })
     });
     
     const data = await res.json();
@@ -100,22 +100,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  const forgotPassword = async (mobile_number: string) => {
+  const forgotPassword = async (email: string) => {
     const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mobile_number })
+      body: JSON.stringify({ email })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Request failed.');
     return { message: data.message, otp: data.otp };
   };
 
-  const resetPassword = async (mobile_number: string, otp: string, new_password: string) => {
+  const resetPassword = async (email: string, otp: string, new_password: string) => {
     const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mobile_number, otp, new_password })
+      body: JSON.stringify({ email, otp, new_password })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Reset failed.');
