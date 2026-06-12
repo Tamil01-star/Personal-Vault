@@ -55,13 +55,13 @@ export default {
         "3xl": "24px", // Match modals
       },
       boxShadow: {
-        sm: '0 2px 8px -1px rgba(0, 0, 0, 0.02), 0 1px 3px 0 rgba(0, 0, 0, 0.01)',
-        md: '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 8px -1px rgba(0, 0, 0, 0.03)',
-        lg: '0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03)',
-        xl: '0 20px 40px -10px rgba(0, 0, 0, 0.07), 0 8px 16px -4px rgba(0, 0, 0, 0.04)',
-        '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.08)',
-        'premium': '0 10px 30px -10px rgba(37, 99, 235, 0.04), 0 1px 3px 0 rgba(0, 0, 0, 0.01)',
-        'premium-hover': '0 20px 40px -15px rgba(37, 99, 235, 0.08), 0 2px 8px 0 rgba(0, 0, 0, 0.02)'
+        sm: '0 2px 8px -1px rgba(0, 0, 0, 0.04), 0 1px 3px 0 rgba(0, 0, 0, 0.02)',
+        md: '0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 8px -1px rgba(15, 23, 42, 0.03)',
+        lg: '0 10px 30px -5px rgba(15, 23, 42, 0.07), 0 4px 12px -2px rgba(15, 23, 42, 0.03)',
+        xl: '0 20px 40px -10px rgba(15, 23, 42, 0.09), 0 8px 16px -4px rgba(15, 23, 42, 0.04)',
+        '2xl': '0 25px 50px -12px rgba(15, 23, 42, 0.10)',
+        'premium': '0 8px 24px -10px rgba(15, 23, 42, 0.08), 0 1px 3px 0 rgba(15, 23, 42, 0.03)',
+        'premium-hover': '0 16px 36px -12px rgba(15, 23, 42, 0.12), 0 2px 8px 0 rgba(15, 23, 42, 0.04)'
       },
     },
   },

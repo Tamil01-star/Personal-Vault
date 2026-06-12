@@ -6,10 +6,10 @@
 
 @layer base {
   :root {
-    --background: 245 247 250;      /* Soft light grey backdrop #F5F7FA */
+    --background: 238 242 247;      /* Clear Slate-100 backdrop #EEF2F7 */
     --foreground: 15 23 42;         /* Slate 900 */
     
-    --card: 255 255 255;            /* White */
+    --card: 255 255 255;            /* Solid White */
     --card-foreground: 15 23 42;
     
     --popover: 255 255 255;
@@ -30,8 +30,8 @@
     --destructive: 244 63 94;        /* Rose #F43F5E */
     --destructive-foreground: 255 255 255;
     
-    --border: 226 232 240;           /* Slate 200 */
-    --input: 226 232 240;
+    --border: 203 213 225;           /* Slate 300 - High-contrast borders! */
+    --input: 203 213 225;            /* Slate 300 - High-contrast input borders */
     --ring: 37 99 235;
     
     --radius: 20px;
@@ -76,8 +76,8 @@
   
   body {
     @apply bg-background text-foreground transition-colors duration-300 min-h-screen;
-    background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.02) 0px, transparent 50%),
-                      radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.02) 0px, transparent 50%);
+    background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.06) 0px, transparent 50%);
   }
 
   .dark body {
@@ -93,11 +93,11 @@
 
 @layer components {
   .glass-card {
-    @apply bg-card/85 border border-border shadow-sm hover:shadow-md hover:border-border/80 transition-all duration-300 rounded-card;
+    @apply bg-card border border-border shadow-premium hover:shadow-premium-hover transition-all duration-300 rounded-card dark:bg-card/85;
   }
   
   .premium-input {
-    @apply bg-card border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-input px-4 py-2.5 text-sm transition-all outline-none placeholder-muted-foreground/60 text-foreground;
+    @apply bg-slate-50 border border-border focus:bg-card focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-input px-4 py-2.5 text-sm transition-all outline-none placeholder-muted-foreground/60 text-foreground dark:bg-card;
   }
 
   .btn-primary {
