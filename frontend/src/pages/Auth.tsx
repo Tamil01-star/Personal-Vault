@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { ShieldAlert, KeyRound, Phone, User, Eye, EyeOff, CheckCircle, Sun, Moon } from 'lucide-react';
+import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from 'firebase/auth';
+import { auth as firebaseAuth } from '../config/firebase';
+import { API_BASE_URL } from '../context/AuthContext';
 
 type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
 
 export const Auth: React.FC = () => {
-  const { login, register, forgotPassword, resetPassword } = useAuth();
+  const { login, register, forgotPassword } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
   const [mode, setMode] = useState<AuthMode>('login');
@@ -25,6 +28,7 @@ export const Auth: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [simulatedOtp, setSimulatedOtp] = useState<string | null>(null);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   const resetMessages = () => {
     setError(null);
@@ -73,11 +77,22 @@ export const Auth: React.FC = () => {
     setError(null);
     setIsLoading(true);
     try {
-      const result = await forgotPassword(mobileNumber);
-      setSuccess('Simulated OTP sent to your registered mobile number.');
-      if (result.otp) {
-        setSimulatedOtp(result.otp);
-      }
+      // 1. Verify if mobile number is registered in our local DB first
+      await forgotPassword(mobileNumber);
+      
+      // 2. Initialize invisible reCAPTCHA verifier
+      const recaptchaVerifier = new RecaptchaVerifier(firebaseAuth, 'recaptcha-container', {
+        size: 'invisible'
+      });
+      
+      // 3. Format mobile number (+91 for India default if missing)
+      const formattedPhone = mobileNumber.startsWith('+') ? mobileNumber : `+91${mobileNumber}`;
+      
+      // 4. Trigger Firebase SMS
+      const confirmation = await signInWithPhoneNumber(firebaseAuth, formattedPhone, recaptchaVerifier);
+      setConfirmationResult(confirmation);
+      
+      setSuccess('A real SMS verification code has been sent to your mobile phone!');
       setMode('reset');
     } catch (err: any) {
       setError(err.message || 'Error occurred. Please verify your mobile number.');
@@ -90,12 +105,30 @@ export const Auth: React.FC = () => {
     e.preventDefault();
     if (!mobileNumber || !otp || !newPassword) return setError('Please fill in all fields.');
     if (newPassword.length < 6) return setError('New password must be at least 6 characters.');
+    if (!confirmationResult) return setError('Verification session expired. Please request a new OTP.');
+    
     setError(null);
     setIsLoading(true);
     try {
-      await resetPassword(mobileNumber, otp, newPassword);
+      // 1. Confirm code with Firebase
+      const userCredential = await confirmationResult.confirm(otp);
+      
+      // 2. Retrieve Firebase JWT Token
+      const idToken = await userCredential.user.getIdToken();
+      
+      // 3. Send verified token to backend
+      const res = await fetch(`${API_BASE_URL}/auth/reset-password-firebase`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, mobile_number: mobileNumber, new_password: newPassword })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Server rejected password reset.');
+      
       setSuccess('Password reset successful! You can now log in.');
       setSimulatedOtp(null);
+      setConfirmationResult(null);
       setTimeout(() => {
         setMode('login');
         setPassword('');
@@ -103,7 +136,7 @@ export const Auth: React.FC = () => {
         resetMessages();
       }, 2000);
     } catch (err: any) {
-      setError(err.message || 'Error resetting password.');
+      setError(err.message || 'Error resetting password. Please check your OTP.');
     } finally {
       setIsLoading(false);
     }
@@ -412,6 +445,7 @@ export const Auth: React.FC = () => {
             </div>
           </form>
         )}
+        <div id="recaptcha-container"></div>
       </div>
     </div>
   );

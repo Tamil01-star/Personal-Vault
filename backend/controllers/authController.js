@@ -1,6 +1,15 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
+import { initializeApp, getApps } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+
+// Initialize Firebase Admin SDK if not already initialized
+if (getApps().length === 0) {
+  initializeApp({
+    projectId: 'd-personal-vault'
+  });
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || 'vault_secure_jwt_secret_token_192837465_vault';
 
@@ -235,5 +244,50 @@ export async function getStats(req, res) {
   } catch (err) {
     console.error('Get stats error:', err);
     return res.status(500).json({ error: 'Internal server error.' });
+  }
+}
+
+/**
+ * Reset Password with Firebase Auth ID Token
+ */
+export async function resetPasswordFirebase(req, res) {
+  const { idToken, mobile_number, new_password } = req.body;
+  
+  if (!idToken || !mobile_number || !new_password) {
+    return res.status(400).json({ error: 'All fields (idToken, mobile number, new password) are required.' });
+  }
+  
+  try {
+    // 1. Verify the ID Token with Firebase
+    const decodedToken = await getAuth().verifyIdToken(idToken);
+    
+    // 2. Extract verified phone number from token
+    const verifiedPhone = decodedToken.phone_number; // Format: "+919876543210"
+    
+    if (!verifiedPhone) {
+      return res.status(400).json({ error: 'Verification token is invalid (no phone number found).' });
+    }
+    
+    // 3. Normalize numbers to compare them
+    const verifiedDigits = verifiedPhone.replace(/\D/g, ''); // e.g. "919876543210"
+    const inputDigits = mobile_number.replace(/\D/g, '');     // e.g. "9876543210"
+    
+    if (!verifiedDigits.endsWith(inputDigits)) {
+      return res.status(400).json({ error: 'The verified phone number does not match your entered number.' });
+    }
+    
+    // 4. Update the password in PostgreSQL DB
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(new_password, salt);
+    
+    await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE mobile_number = $2',
+      [newPasswordHash, mobile_number]
+    );
+    
+    return res.status(200).json({ message: 'Password has been reset successfully.' });
+  } catch (err) {
+    console.error('Firebase token verification failed:', err);
+    return res.status(401).json({ error: 'Invalid or expired SMS OTP token. Please try again.' });
   }
 }
