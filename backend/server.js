@@ -79,7 +79,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error occurred.' });
 });
 
-// Start Server - Rebuild to load env vars
+// Start Server - Final rebuild check
 app.listen(PORT, () => {
   console.log(`==================================================`);
   console.log(`  Secure Personal Vault Backend Server running`);
