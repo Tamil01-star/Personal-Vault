@@ -29,6 +29,7 @@ export const Auth: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [simulatedOtp, setSimulatedOtp] = useState<string | null>(null);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [useTestMode, setUseTestMode] = useState(false);
 
   const resetMessages = () => {
     setError(null);
@@ -93,6 +94,9 @@ export const Auth: React.FC = () => {
         }
       }
 
+      // Set Firebase test setting based on toggled state
+      firebaseAuth.settings.appVerificationDisabledForTesting = useTestMode;
+
       // 2. Initialize invisible reCAPTCHA verifier
       const recaptchaVerifier = new RecaptchaVerifier(firebaseAuth, 'recaptcha-container', {
         size: 'invisible'
@@ -106,7 +110,11 @@ export const Auth: React.FC = () => {
       const confirmation = await signInWithPhoneNumber(firebaseAuth, formattedPhone, recaptchaVerifier);
       setConfirmationResult(confirmation);
       
-      setSuccess('A real SMS verification code has been sent to your mobile phone!');
+      setSuccess(
+        useTestMode
+          ? 'Test Mode: Session initialized. Please enter the Test OTP code you configured in your Firebase Console!'
+          : 'A real SMS verification code has been sent to your mobile phone!'
+      );
       setMode('reset');
     } catch (err: any) {
       setError(err.message || 'Error occurred. Please verify your mobile number.');
@@ -363,8 +371,33 @@ export const Auth: React.FC = () => {
         {mode === 'forgot' && (
           <form onSubmit={handleForgotPassword} className="space-y-4">
             <p className="text-xs text-muted-foreground font-medium leading-relaxed mb-4 text-center">
-              Enter your registered mobile number below. We will simulate sending a 6-digit OTP verification code to verify ownership and reset your password.
+              Enter your registered mobile number below to verify your phone number and reset your master password.
             </p>
+
+            <div className="flex items-start space-x-2 bg-slate-50 border border-slate-200/60 p-3 rounded-xl">
+              <input
+                type="checkbox"
+                id="test-mode-toggle"
+                checked={useTestMode}
+                onChange={(e) => setUseTestMode(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary/20"
+              />
+              <div className="flex-1">
+                <label htmlFor="test-mode-toggle" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                  Enable Firebase Test Mode (Fictional Numbers)
+                </label>
+                <p className="text-[10px] text-slate-500 mt-0.5 leading-normal">
+                  Bypasses the Firebase SMS billing requirement. Fictional phone numbers and mock OTP codes must be configured first in your Firebase Console.
+                </p>
+              </div>
+            </div>
+
+            {useTestMode && (
+              <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200/50 p-2.5 rounded-xl leading-normal space-y-1">
+                <p className="font-bold">⚠️ Test Mode Active</p>
+                <p>Ensure your test phone number (e.g. <code>+919999999999</code>) and test code (e.g. <code>123456</code>) are added under <strong>Firebase Console &gt; Authentication &gt; Sign-in method &gt; Phone &gt; Phone numbers for testing</strong>.</p>
+              </div>
+            )}
 
             <div>
               <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">Mobile Number</label>
@@ -374,7 +407,7 @@ export const Auth: React.FC = () => {
                 </span>
                 <input
                   type="tel"
-                  placeholder="Enter registered mobile"
+                  placeholder={useTestMode ? "e.g., +919999999999" : "Enter registered mobile"}
                   value={mobileNumber}
                   onChange={(e) => setMobileNumber(e.target.value)}
                   className="w-full premium-input pl-10 pr-4 py-2.5 text-sm transition-all focus:ring-4 focus:ring-primary/10"
