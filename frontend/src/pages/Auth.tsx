@@ -110,7 +110,7 @@ export const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 overflow-hidden relative transition-colors duration-300">
+    <div className="min-h-screen w-full flex items-center justify-center bg-background px-4 py-12 overflow-y-auto overflow-x-hidden relative transition-colors duration-300">
       
       {/* Floating Theme Switcher at Top Right */}
       <button
