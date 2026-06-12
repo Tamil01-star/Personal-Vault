@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAYAqryxjkQicH10t5RROTDXLp7oBerppc",
+  apiKey: "AIzaSyAYAqryxjkQich10t5RROTDXLp7oBerppc",
   authDomain: "d-personal-vault.firebaseapp.com",
   projectId: "d-personal-vault",
   storageBucket: "d-personal-vault.firebasestorage.app",
