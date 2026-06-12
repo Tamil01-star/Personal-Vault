@@ -80,10 +80,24 @@ export const Auth: React.FC = () => {
       // 1. Verify if mobile number is registered in our local DB first
       await forgotPassword(mobileNumber);
       
+      // Clear existing verifier if it exists to avoid "reCAPTCHA already rendered"
+      if ((window as any).recaptchaVerifier) {
+        try {
+          (window as any).recaptchaVerifier.clear();
+        } catch (e) {
+          console.error('Error clearing recaptcha verifier:', e);
+        }
+        const container = document.getElementById('recaptcha-container');
+        if (container) {
+          container.innerHTML = '';
+        }
+      }
+
       // 2. Initialize invisible reCAPTCHA verifier
       const recaptchaVerifier = new RecaptchaVerifier(firebaseAuth, 'recaptcha-container', {
         size: 'invisible'
       });
+      (window as any).recaptchaVerifier = recaptchaVerifier;
       
       // 3. Format mobile number (+91 for India default if missing)
       const formattedPhone = mobileNumber.startsWith('+') ? mobileNumber : `+91${mobileNumber}`;
