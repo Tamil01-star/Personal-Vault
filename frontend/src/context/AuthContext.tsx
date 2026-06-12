@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : 'https://personal-vault-8rfm.vercel.app/api';
 
 interface User {
   id: number;
