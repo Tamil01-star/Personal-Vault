@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 248 250 252;      /* Slate 50 */
+    --foreground: 15 23 42;         /* Slate 900 */
+    
+    --card: 255 255 255;            /* White */
+    --card-foreground: 15 23 42;
+    
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
+    
+    --primary: 99 102 241;          /* Indigo 500 */
+    --primary-foreground: 255 255 255;
+    
+    --secondary: 241 245 249;        /* Slate 100 */
+    --secondary-foreground: 15 23 42;
+    
+    --muted: 241 245 249;
+    --muted-foreground: 100 116 139; /* Slate 500 */
+    
+    --accent: 238 242 255;           /* Indigo 50 */
+    --accent-foreground: 79 70 229;  /* Indigo 600 */
+    
+    --destructive: 239 68 68;       /* Red 500 */
+    --destructive-foreground: 255 255 255;
+    
+    --border: 226 232 240;          /* Slate 200 */
+    --input: 226 232 240;
+    --ring: 99 102 241;
+    
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 9 15 29;          /* Deep Midnight Blue */
+    --foreground: 241 245 249;      /* Slate 100 */
+    
+    --card: 17 24 39;               /* Slate 900 */
+    --card-foreground: 241 245 249;
+    
+    --popover: 17 24 39;
+    --popover-foreground: 241 245 249;
+    
+    --primary: 129 140 248;         /* Indigo 400 */
+    --primary-foreground: 9 15 29;
+    
+    --secondary: 31 41 55;          /* Slate 800 */
+    --secondary-foreground: 241 245 249;
+    
+    --muted: 31 41 55;
+    --muted-foreground: 156 163 175;/* Gray 400 */
+    
+    --accent: 30 41 59;             /* Slate 800-ish */
+    --accent-foreground: 129 140 248;
+    
+    --destructive: 248 113 113;     /* Red 400 */
+    --destructive-foreground: 255 255 255;
+    
+    --border: 31 41 55;
+    --input: 31 41 55;
+    --ring: 129 140 248;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    @apply tracking-tight font-semibold;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/35 transition-colors;
+}
+
+/* Rich Text Editor Styling inside dashboard */
+.rich-editor-content p {
+  margin-bottom: 0.5rem;
+}
+.rich-editor-content ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.rich-editor-content ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.rich-editor-content blockquote {
+  border-left: 4px solid rgb(var(--primary));
+  padding-left: 0.75rem;
+  color: rgb(var(--muted-foreground));
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+/* Custom calendar view active day styling */
+.calendar-day-selected {
+  position: relative;
+}
+.calendar-day-selected::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background-color: rgb(var(--primary));
+}
