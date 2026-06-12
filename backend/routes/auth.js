@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, forgotPassword, resetPassword, changePassword, getStats, resetPasswordFirebase } from '../controllers/authController.js';
+import { register, login, forgotPassword, resetPassword, changePassword, getStats, resetPasswordFirebase, updateProfile } from '../controllers/authController.js';
 import { verifyToken, authLimiter } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -13,5 +13,6 @@ router.post('/reset-password-firebase', authLimiter, resetPasswordFirebase);
 // Authenticated routes
 router.post('/change-password', verifyToken, changePassword);
 router.get('/stats', verifyToken, getStats);
+router.put('/profile', verifyToken, updateProfile);
 
 export default router;

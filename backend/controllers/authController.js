@@ -251,6 +251,59 @@ export async function getStats(req, res) {
 }
 
 /**
+ * Update User Profile (username, email, mobile_number)
+ */
+export async function updateProfile(req, res) {
+  const userId = req.user.id;
+  const { username, email, mobile_number } = req.body;
+
+  if (!username || !email || !mobile_number) {
+    return res.status(400).json({ error: 'Username, email, and mobile number are required.' });
+  }
+
+  try {
+    // Check if the username, email, or mobile number is already taken by another user
+    const checkUser = await pool.query(
+      'SELECT id FROM users WHERE (username = $1 OR email = $2 OR mobile_number = $3) AND id != $4',
+      [username, email, mobile_number, userId]
+    );
+
+    if (checkUser.rows.length > 0) {
+      return res.status(400).json({ error: 'Username, email, or mobile number is already registered to another account.' });
+    }
+
+    // Update user
+    const updatedUserRes = await pool.query(
+      'UPDATE users SET username = $1, email = $2, mobile_number = $3 WHERE id = $4 RETURNING id, username, email, mobile_number, created_at',
+      [username, email, mobile_number, userId]
+    );
+
+    if (updatedUserRes.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const user = updatedUserRes.rows[0];
+
+    // Generate a new token with updated information
+    const token = jwt.sign(
+      { id: user.id, username: user.username, email: user.email, mobile_number: user.mobile_number },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return res.status(200).json({
+      message: 'Profile updated successfully!',
+      token,
+      user
+    });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    return res.status(500).json({ error: 'Internal server error occurred.' });
+  }
+}
+
+
+/**
  * Reset Password with Firebase Auth ID Token
  */
 export async function resetPasswordFirebase(req, res) {

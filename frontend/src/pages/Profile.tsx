@@ -13,7 +13,13 @@ import {
   Moon,
   Eye,
   EyeOff,
-  FileCheck
+  FileCheck,
+  User,
+  Mail,
+  Phone,
+  Edit2,
+  Save,
+  X
 } from 'lucide-react';
 
 interface Stats {
@@ -25,7 +31,7 @@ interface Stats {
 }
 
 export const Profile: React.FC = () => {
-  const { user, changePassword, apiCall, getStats, logout } = useAuth();
+  const { user, changePassword, apiCall, getStats, logout, updateProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const [stats, setStats] = useState<Stats>({ passwords: 0, notes: 0, diary: 0, letters: 0, files: 0 });
@@ -52,6 +58,48 @@ export const Profile: React.FC = () => {
   const [backupLoading, setBackupLoading] = useState(false);
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [restoreStatus, setRestoreStatus] = useState<string | null>(null);
+
+  // Profile editing states
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editUsername, setEditUsername] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editMobileNumber, setEditMobileNumber] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
+  const [editSuccess, setEditSuccess] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  const startEditingProfile = () => {
+    setEditUsername(user?.username || '');
+    setEditEmail(user?.email || '');
+    setEditMobileNumber(user?.mobile_number || '');
+    setEditError(null);
+    setEditSuccess(null);
+    setIsEditingProfile(true);
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditError(null);
+    setEditSuccess(null);
+
+    if (!editUsername || !editEmail || !editMobileNumber) {
+      return setEditError('All fields are required.');
+    }
+
+    try {
+      setEditLoading(true);
+      const res = await updateProfile(editUsername, editEmail, editMobileNumber);
+      setEditSuccess(res.message || 'Profile updated successfully.');
+      setTimeout(() => {
+        setIsEditingProfile(false);
+        setEditSuccess(null);
+      }, 1500);
+    } catch (err: any) {
+      setEditError(err.message || 'Error updating profile.');
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -224,19 +272,111 @@ export const Profile: React.FC = () => {
       
       {/* Top Profile Header card */}
       <div className="bg-card border border-border p-6 rounded-2xl shadow-sm flex flex-col items-center text-center relative overflow-hidden">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-extrabold text-xl shadow-inner mb-3 uppercase select-none">
-          {user?.username.slice(0, 2)}
-        </div>
-        <h2 className="text-lg font-bold text-foreground uppercase tracking-wide">{user?.username}</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">{user?.mobile_number}</p>
-        
-        {/* Sign out */}
-        <button
-          onClick={logout}
-          className="mt-4 border border-red-500/20 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground px-4 py-1.5 rounded-xl text-xs font-bold transition-all"
-        >
-          Sign Out of Vault
-        </button>
+        {isEditingProfile ? (
+          <form onSubmit={handleUpdateProfile} className="w-full max-w-md space-y-4">
+            <h3 className="text-xs font-bold text-foreground flex items-center justify-center gap-2 mb-2">
+              <Edit2 size={14} className="text-primary" />
+              Edit Profile Info
+            </h3>
+            
+            {editError && <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] rounded-lg font-medium text-left">{editError}</div>}
+            {editSuccess && <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-[10px] rounded-lg font-medium text-left">{editSuccess}</div>}
+
+            <div className="space-y-3">
+              <div className="text-left">
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                  <User size={12} className="text-primary" /> Username
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
+                  className="w-full premium-input py-2 px-3 text-xs focus:ring-4 focus:ring-primary/10"
+                />
+              </div>
+
+              <div className="text-left">
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                  <Mail size={12} className="text-primary" /> Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="w-full premium-input py-2 px-3 text-xs focus:ring-4 focus:ring-primary/10"
+                />
+              </div>
+
+              <div className="text-left">
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                  <Phone size={12} className="text-primary" /> Mobile Number
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={editMobileNumber}
+                  onChange={(e) => setEditMobileNumber(e.target.value)}
+                  className="w-full premium-input py-2 px-3 text-xs focus:ring-4 focus:ring-primary/10"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsEditingProfile(false)}
+                disabled={editLoading}
+                className="flex-1 border border-border/80 bg-card hover:bg-accent/60 text-foreground py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <X size={14} /> Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editLoading}
+                className="flex-1 btn-primary py-2 rounded-xl text-xs font-bold shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5"
+              >
+                <Save size={14} /> {editLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="flex flex-col items-center w-full">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-extrabold text-xl shadow-inner mb-3 uppercase select-none">
+              {user?.username.slice(0, 2)}
+            </div>
+            <h2 className="text-lg font-bold text-foreground uppercase tracking-wide">{user?.username}</h2>
+            
+            <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center justify-center gap-2">
+                <Mail size={13} className="text-primary/70" />
+                <span>{user?.email || 'No email registered'}</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Phone size={13} className="text-primary/70" />
+                <span>{user?.mobile_number}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2.5 mt-5">
+              <button
+                onClick={startEditingProfile}
+                className="border border-border bg-card hover:bg-accent/60 text-foreground px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                <Edit2 size={13} className="text-primary" />
+                Edit Profile
+              </button>
+              
+              <button
+                onClick={logout}
+                className="border border-red-500/20 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground px-4 py-1.5 rounded-xl text-xs font-bold transition-all"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Vault Statistics Block */}

@@ -7,6 +7,7 @@ export const API_BASE_URL = window.location.hostname === 'localhost' || window.l
 interface User {
   id: number;
   username: string;
+  email: string;
   mobile_number: string;
   created_at: string;
 }
@@ -30,6 +31,7 @@ interface AuthContextType {
   forgotPassword: (email: string) => Promise<{ message: string; otp?: string }>;
   resetPassword: (email: string, otp: string, new_password: string) => Promise<{ message: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ message: string }>;
+  updateProfile: (username: string, email: string, mobile_number: string) => Promise<{ message: string; user: User }>;
   getStats: () => Promise<Stats>;
   apiCall: (endpoint: string, options?: RequestInit) => Promise<any>;
 }
@@ -129,6 +131,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const updateProfile = async (username: string, email: string, mobile_number: string) => {
+    const data = await apiCall('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ username, email, mobile_number })
+    });
+    
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
+    
+    return { message: data.message, user: data.user };
+  };
+
   const getStats = async () => {
     const data = await apiCall('/auth/stats');
     return data.stats;
@@ -179,6 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       forgotPassword,
       resetPassword,
       changePassword,
+      updateProfile,
       getStats,
       apiCall
     }}>
