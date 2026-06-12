@@ -34,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView })
     { id: 'diary', label: 'Daily Diary', icon: Calendar },
     { id: 'letters', label: 'Personal Letters', icon: Mail },
     { id: 'documents', label: 'Documents & Files', icon: FileText },
-    { id: 'settings', label: 'Vault Settings', icon: Settings },
+    { id: 'profile', label: 'Vault Settings', icon: Settings },
   ];
 
   const toggleMobileMenu = () => setIsOpen(!isOpen);
