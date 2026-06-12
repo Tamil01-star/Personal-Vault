@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Standardize key to 32 bytes (256 bits)
-const RAW_KEY = process.env.ENCRYPTION_KEY || 'default_secret_encryption_key_32_bytes_long';
+const RAW_KEY = process.env.ENCRYPTION_KEY || 'vault_secure_aes_encryption_key_32_bytes_vault';
 const ENCRYPTION_KEY = crypto.createHash('sha256').update(RAW_KEY).digest(); // Always generates a 32-byte key
 
 const IV_LENGTH = 12; // GCM recommended IV size

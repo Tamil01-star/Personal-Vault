@@ -8,11 +8,9 @@ dotenv.config();
 
 const { Pool } = pg;
 
-const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
-
-if (!connectionString) {
-  console.error("CRITICAL ERROR: NEON_DATABASE_URL is not set in backend/.env file.");
-}
+const connectionString = process.env.NEON_DATABASE_URL || 
+                         process.env.DATABASE_URL || 
+                         'postgresql://neondb_owner:npg_4nAsbOG7Uoth@ep-old-voice-ahmoxnyh-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 
 const pool = new Pool({
   connectionString: connectionString,

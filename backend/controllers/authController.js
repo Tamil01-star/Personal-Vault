@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'vault_default_jwt_secret_token_192837465';
+const JWT_SECRET = process.env.JWT_SECRET || 'vault_secure_jwt_secret_token_192837465_vault';
 
 // Memory store for OTPs (Mobile Number -> { otp, expiresAt })
 const otpStore = new Map();
