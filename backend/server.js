@@ -7,6 +7,7 @@ import noteRoutes from './routes/notes.js';
 import diaryRoutes from './routes/diary.js';
 import letterRoutes from './routes/letters.js';
 import fileRoutes from './routes/files.js';
+import pool from './config/db.js';
 
 dotenv.config();
 
@@ -25,8 +26,29 @@ app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ limit: '15mb', extended: true }));
 
 // Serve static assets if needed
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date() });
+app.get('/health', async (req, res) => {
+  const dbStatus = {
+    connected: false,
+    error: null
+  };
+  try {
+    const dbRes = await pool.query('SELECT NOW()');
+    dbStatus.connected = true;
+    dbStatus.timestamp = dbRes.rows[0].now;
+  } catch (err) {
+    dbStatus.error = err.message;
+  }
+
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date(),
+    env: {
+      has_db_url: !!process.env.NEON_DATABASE_URL,
+      has_jwt_secret: !!process.env.JWT_SECRET,
+      has_encryption_key: !!process.env.ENCRYPTION_KEY,
+    },
+    database: dbStatus
+  });
 });
 
 app.get('/', (req, res) => {
