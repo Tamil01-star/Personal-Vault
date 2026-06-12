@@ -78,7 +78,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error occurred.' });
 });
 
-// Start Server
+// Start Server - Triggering Vercel Rebuild
 app.listen(PORT, () => {
   console.log(`==================================================`);
   console.log(`  Secure Personal Vault Backend Server running`);
