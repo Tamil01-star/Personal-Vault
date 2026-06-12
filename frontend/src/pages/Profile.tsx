@@ -268,7 +268,7 @@ export const Profile: React.FC = () => {
       {/* Top Profile Header card */}
       <div className="bg-card border border-border p-6 rounded-2xl shadow-sm flex flex-col items-center text-center relative overflow-hidden">
         <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-extrabold text-xl shadow-inner mb-3 uppercase select-none">
-          {user?.username.slice(0, 2)}
+          {user?.username?.slice(0, 2) || ''}
         </div>
         <h2 className="text-lg font-bold text-foreground uppercase tracking-wide">{user?.username}</h2>
         
