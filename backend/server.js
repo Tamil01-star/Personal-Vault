@@ -46,6 +46,9 @@ app.get('/health', async (req, res) => {
       has_db_url: !!process.env.NEON_DATABASE_URL,
       has_jwt_secret: !!process.env.JWT_SECRET,
       has_encryption_key: !!process.env.ENCRYPTION_KEY,
+      has_firebase_service_account: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+      has_firebase_private_key: !!process.env.FIREBASE_PRIVATE_KEY,
+      has_firebase_client_email: !!process.env.FIREBASE_CLIENT_EMAIL
     },
     database: dbStatus
   });
