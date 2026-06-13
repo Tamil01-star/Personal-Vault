@@ -59,7 +59,7 @@ app.get('/', (req, res) => {
   res.status(200).json({
     status: 'healthy',
     message: 'Secure Personal Vault API is running.',
-    version: 'test-redeploy-3',
+    version: 'test-redeploy-4',
     timestamp: new Date()
   });
 });
