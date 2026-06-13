@@ -27,3 +27,8 @@ yarn-error.log*
 Thumbs.db
 .gemini/
 antigravity/
+
+# Firebase Service Account Credentials JSON files
+*-adminsdk-*.json
+d-personal-vault-*.json
+

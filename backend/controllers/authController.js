@@ -5,46 +5,49 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { sendOtpEmail } from '../config/email.js';
 
-// Initialize Firebase Admin SDK if not already initialized
-if (getApps().length === 0) {
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const projectId = process.env.FIREBASE_PROJECT_ID || 'd-personal-vault';
+// Helper to lazily initialize Firebase Admin SDK and return Auth instance
+function getFirebaseAuth() {
+  if (getApps().length === 0) {
+    const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const projectId = process.env.FIREBASE_PROJECT_ID || 'd-personal-vault';
 
-  if (serviceAccountJson) {
-    try {
-      const serviceAccount = JSON.parse(serviceAccountJson);
-      if (serviceAccount.private_key) {
-        // Fix newline escape sequences commonly corrupted by env parsers
-        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    if (serviceAccountJson) {
+      try {
+        const serviceAccount = JSON.parse(serviceAccountJson);
+        if (serviceAccount.private_key) {
+          // Fix newline escape sequences commonly corrupted by env parsers
+          serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+        }
+        initializeApp({
+          credential: cert(serviceAccount)
+        });
+        console.log('Firebase Admin SDK initialized successfully with service account JSON.');
+      } catch (err) {
+        console.error('Error parsing FIREBASE_SERVICE_ACCOUNT env var:', err.message);
+        initializeFallback(projectId);
       }
-      initializeApp({
-        credential: cert(serviceAccount)
-      });
-      console.log('Firebase Admin SDK initialized successfully with service account JSON.');
-    } catch (err) {
-      console.error('Error parsing FIREBASE_SERVICE_ACCOUNT env var:', err.message);
+    } else if (privateKey && clientEmail) {
+      try {
+        const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
+        initializeApp({
+          credential: cert({
+            projectId,
+            clientEmail,
+            privateKey: formattedPrivateKey
+          })
+        });
+        console.log('Firebase Admin SDK initialized successfully with individual env vars.');
+      } catch (err) {
+        console.error('Error initializing Firebase with individual env vars:', err.message);
+        initializeFallback(projectId);
+      }
+    } else {
       initializeFallback(projectId);
     }
-  } else if (privateKey && clientEmail) {
-    try {
-      const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
-      initializeApp({
-        credential: cert({
-          projectId,
-          clientEmail,
-          privateKey: formattedPrivateKey
-        })
-      });
-      console.log('Firebase Admin SDK initialized successfully with individual env vars.');
-    } catch (err) {
-      console.error('Error initializing Firebase with individual env vars:', err.message);
-      initializeFallback(projectId);
-    }
-  } else {
-    initializeFallback(projectId);
   }
+  return getAuth();
 }
 
 function initializeFallback(projectId) {
@@ -93,7 +96,7 @@ export async function register(req, res) {
 
     // Create user in Firebase Auth
     try {
-      await getAuth().createUser({
+      await getFirebaseAuth().createUser({
         uid: user.id.toString(),
         email: email,
         password: password,
@@ -186,11 +189,11 @@ export async function forgotPassword(req, res) {
     
     // Ensure the user exists in Firebase Authentication
     try {
-      await getAuth().getUserByEmail(email);
+      await getFirebaseAuth().getUserByEmail(email);
     } catch (err) {
       if (err.code === 'auth/user-not-found') {
         console.log(`Syncing user ${dbUser.username} with Firebase Authentication dynamically...`);
-        await getAuth().createUser({
+        await getFirebaseAuth().createUser({
           uid: dbUser.id.toString(),
           email: email,
           displayName: dbUser.username
@@ -376,7 +379,7 @@ export async function resetPasswordFirebase(req, res) {
   
   try {
     // 1. Verify the ID Token with Firebase
-    const decodedToken = await getAuth().verifyIdToken(idToken);
+    const decodedToken = await getFirebaseAuth().verifyIdToken(idToken);
     
     // 2. Extract verified phone number from token
     const verifiedPhone = decodedToken.phone_number; // Format: "+919876543210"
@@ -421,7 +424,7 @@ export async function resetPasswordFirebaseEmail(req, res) {
 
   try {
     // 1. Verify the ID Token with Firebase
-    const decodedToken = await getAuth().verifyIdToken(idToken);
+    const decodedToken = await getFirebaseAuth().verifyIdToken(idToken);
     
     // 2. Extract verified email from token
     const verifiedEmail = decodedToken.email;
