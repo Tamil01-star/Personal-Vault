@@ -1,60 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
+import { getFirebaseAuth } from '../config/firebase.js';
 import { sendOtpEmail } from '../config/email.js';
-
-// Helper to lazily initialize Firebase Admin SDK and return Auth instance
-function getFirebaseAuth() {
-  if (getApps().length === 0) {
-    const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const projectId = process.env.FIREBASE_PROJECT_ID || 'd-personal-vault';
-
-    if (serviceAccountJson) {
-      try {
-        const serviceAccount = JSON.parse(serviceAccountJson);
-        if (serviceAccount.private_key) {
-          // Fix newline escape sequences commonly corrupted by env parsers
-          serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-        }
-        initializeApp({
-          credential: cert(serviceAccount)
-        });
-        console.log('Firebase Admin SDK initialized successfully with service account JSON.');
-      } catch (err) {
-        console.error('Error parsing FIREBASE_SERVICE_ACCOUNT env var:', err.message);
-        initializeFallback(projectId);
-      }
-    } else if (privateKey && clientEmail) {
-      try {
-        const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
-        initializeApp({
-          credential: cert({
-            projectId,
-            clientEmail,
-            privateKey: formattedPrivateKey
-          })
-        });
-        console.log('Firebase Admin SDK initialized successfully with individual env vars.');
-      } catch (err) {
-        console.error('Error initializing Firebase with individual env vars:', err.message);
-        initializeFallback(projectId);
-      }
-    } else {
-      initializeFallback(projectId);
-    }
-  }
-  return getAuth();
-}
-
-function initializeFallback(projectId) {
-  initializeApp({
-    projectId
-  });
-}
 
 const JWT_SECRET = process.env.JWT_SECRET || 'vault_secure_jwt_secret_token_192837465_vault';
 
