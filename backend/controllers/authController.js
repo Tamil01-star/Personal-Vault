@@ -1,15 +1,31 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
-import { initializeApp, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { sendOtpEmail } from '../config/email.js';
 
 // Initialize Firebase Admin SDK if not already initialized
 if (getApps().length === 0) {
-  initializeApp({
-    projectId: 'd-personal-vault'
-  });
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (serviceAccountJson) {
+    try {
+      const serviceAccount = JSON.parse(serviceAccountJson);
+      initializeApp({
+        credential: cert(serviceAccount)
+      });
+      console.log('Firebase Admin SDK initialized successfully with service account credential.');
+    } catch (err) {
+      console.error('Error parsing FIREBASE_SERVICE_ACCOUNT env var:', err.message);
+      initializeApp({
+        projectId: 'd-personal-vault'
+      });
+    }
+  } else {
+    initializeApp({
+      projectId: 'd-personal-vault'
+    });
+  }
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'vault_secure_jwt_secret_token_192837465_vault';
