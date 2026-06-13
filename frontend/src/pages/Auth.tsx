@@ -74,7 +74,11 @@ export const Auth: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await forgotPassword(email);
-      setSuccess(res.message || 'A verification OTP has been sent to your email address!');
+      if (res.otp) {
+        setSuccess(`${res.message || 'OTP sent!'} (Dev Mode Fallback OTP: ${res.otp})`);
+      } else {
+        setSuccess(res.message || 'A verification OTP has been sent to your email address!');
+      }
       setMode('reset');
     } catch (err: any) {
       setError(err.message || 'Error occurred. Please verify your email.');
