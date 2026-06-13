@@ -49,6 +49,18 @@ export async function register(req, res) {
     );
     
     const user = newUser.rows[0];
+
+    // Create user in Firebase Auth
+    try {
+      await getAuth().createUser({
+        uid: user.id.toString(),
+        email: email,
+        password: password,
+        displayName: username
+      });
+    } catch (fbErr) {
+      console.log('Firebase user creation info/error on registration:', fbErr.message);
+    }
     
     // Generate token
     const token = jwt.sign({ id: user.id, username: user.username, email: user.email, mobile_number: user.mobile_number }, JWT_SECRET, { expiresIn: '7d' });
@@ -124,24 +136,32 @@ export async function forgotPassword(req, res) {
   }
   
   try {
-    const findUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const findUser = await pool.query('SELECT id, username FROM users WHERE email = $1', [email]);
     if (findUser.rows.length === 0) {
       return res.status(404).json({ error: 'This email address is not registered.' });
     }
+
+    const dbUser = findUser.rows[0];
     
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
-    
-    // Save to memory store
-    otpStore.set(email, { otp, expiresAt });
-    
-    // Send email via SMTP helper
-    await sendOtpEmail(email, otp);
+    // Ensure the user exists in Firebase Authentication
+    try {
+      await getAuth().getUserByEmail(email);
+    } catch (err) {
+      if (err.code === 'auth/user-not-found') {
+        console.log(`Syncing user ${dbUser.username} with Firebase Authentication dynamically...`);
+        await getAuth().createUser({
+          uid: dbUser.id.toString(),
+          email: email,
+          displayName: dbUser.username
+        });
+      } else {
+        throw err;
+      }
+    }
     
     return res.status(200).json({
-      message: 'OTP verification code sent successfully to your email address.',
-      otp: process.env.NODE_ENV !== 'production' ? otp : undefined
+      message: 'User verified. Firebase email reset link can be requested.',
+      useFirebaseClient: true
     });
   } catch (err) {
     console.error('Forgot password error:', err);
@@ -345,5 +365,42 @@ export async function resetPasswordFirebase(req, res) {
   } catch (err) {
     console.error('Firebase token verification failed:', err);
     return res.status(401).json({ error: 'Invalid or expired SMS OTP token. Please try again.' });
+  }
+}
+
+/**
+ * Reset Password with Firebase Auth ID Token (for Email link password resets)
+ */
+export async function resetPasswordFirebaseEmail(req, res) {
+  const { idToken, new_password } = req.body;
+
+  if (!idToken || !new_password) {
+    return res.status(400).json({ error: 'All fields (idToken, new password) are required.' });
+  }
+
+  try {
+    // 1. Verify the ID Token with Firebase
+    const decodedToken = await getAuth().verifyIdToken(idToken);
+    
+    // 2. Extract verified email from token
+    const verifiedEmail = decodedToken.email;
+    
+    if (!verifiedEmail) {
+      return res.status(400).json({ error: 'Verification token is invalid (no email address found).' });
+    }
+    
+    // 3. Update the password in PostgreSQL DB
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(new_password, salt);
+    
+    await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE email = $2',
+      [newPasswordHash, verifiedEmail]
+    );
+    
+    return res.status(200).json({ message: 'Password has been reset successfully.' });
+  } catch (err) {
+    console.error('Firebase email ID token verification failed:', err);
+    return res.status(401).json({ error: 'Invalid or expired Firebase email token. Please try again.' });
   }
 }

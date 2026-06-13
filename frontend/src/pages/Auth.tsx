@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { ShieldAlert, KeyRound, Phone, User, Eye, EyeOff, Sun, Moon, Mail } from 'lucide-react';
+import { auth } from '../config/firebase';
+import { verifyPasswordResetCode } from 'firebase/auth';
 
 type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
 
 export const Auth: React.FC = () => {
-  const { login, register, forgotPassword, resetPassword } = useAuth();
+  const { login, register, forgotPassword, resetPasswordFirebaseEmail } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
   const [mode, setMode] = useState<AuthMode>('login');
@@ -17,8 +19,33 @@ export const Auth: React.FC = () => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
   const [usernameOrMobile, setUsernameOrMobile] = useState('');
-  const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [oobCode, setOobCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const modeParam = params.get('mode');
+    const codeParam = params.get('oobCode');
+
+    if (modeParam === 'resetPassword' && codeParam) {
+      setOobCode(codeParam);
+      setMode('reset');
+      
+      // Auto-extract email from Firebase action code
+      verifyPasswordResetCode(auth, codeParam)
+        .then((verifiedEmail) => {
+          setEmail(verifiedEmail);
+        })
+        .catch((err) => {
+          console.error('Error verifying reset code:', err);
+          setError('The password reset link is invalid or has expired.');
+        });
+
+      // Clean up the URL parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
   
   // States
   const [showPassword, setShowPassword] = useState(false);
@@ -74,12 +101,7 @@ export const Auth: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await forgotPassword(email);
-      if (res.otp) {
-        setSuccess(`${res.message || 'OTP sent!'} (Dev Mode Fallback OTP: ${res.otp})`);
-      } else {
-        setSuccess(res.message || 'A verification OTP has been sent to your email address!');
-      }
-      setMode('reset');
+      setSuccess(res.message || 'A password reset link has been sent to your registered email address!');
     } catch (err: any) {
       setError(err.message || 'Error occurred. Please verify your email.');
     } finally {
@@ -89,22 +111,23 @@ export const Auth: React.FC = () => {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !otp || !newPassword) return setError('Please fill in all fields.');
+    if (!email || !newPassword) return setError('Please enter your registered email and new password.');
+    if (!oobCode) return setError('Reset code is missing. Please click the email link again.');
     if (newPassword.length < 6) return setError('New password must be at least 6 characters.');
     
     setError(null);
     setIsLoading(true);
     try {
-      await resetPassword(email, otp, newPassword);
-      setSuccess('Password reset successful! You can now log in.');
+      await resetPasswordFirebaseEmail(email, oobCode, newPassword);
+      setSuccess('Password reset successful! Your password has been synchronized. You can now log in.');
       setTimeout(() => {
         setMode('login');
         setPassword('');
         setUsernameOrMobile(email);
         resetMessages();
-      }, 2000);
+      }, 3000);
     } catch (err: any) {
-      setError(err.message || 'Error resetting password. Please check your OTP.');
+      setError(err.message || 'Error resetting password. Link may have expired.');
     } finally {
       setIsLoading(false);
     }
@@ -364,17 +387,12 @@ export const Auth: React.FC = () => {
         {/* MODE: RESET */}
         {mode === 'reset' && (
           <form onSubmit={handleResetPassword} className="space-y-4">
-            <div>
-              <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">OTP Code</label>
-              <input
-                type="text"
-                placeholder="Enter 6-digit OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                maxLength={6}
-                className="w-full premium-input py-2.5 px-4 text-center text-lg tracking-widest focus:ring-4 focus:ring-primary/10 font-bold"
-              />
-            </div>
+            {email && (
+              <div className="text-center bg-primary/5 border border-primary/10 rounded-xl p-3 mb-2">
+                <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block">Account Email</span>
+                <span className="text-xs text-foreground font-bold">{email}</span>
+              </div>
+            )}
 
             <div>
               <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">New Password</label>

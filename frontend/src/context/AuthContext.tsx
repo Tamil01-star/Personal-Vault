@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { auth } from '../config/firebase';
+import { sendPasswordResetEmail, confirmPasswordReset, signInWithEmailAndPassword } from 'firebase/auth';
 
 export const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
@@ -28,8 +30,9 @@ interface AuthContextType {
   login: (usernameOrMobile: string, password: string) => Promise<{ message: string }>;
   register: (username: string, email: string, mobile_number: string, password: string) => Promise<{ message: string }>;
   logout: () => void;
-  forgotPassword: (email: string) => Promise<{ message: string; otp?: string }>;
+  forgotPassword: (email: string) => Promise<{ message: string }>;
   resetPassword: (email: string, otp: string, new_password: string) => Promise<{ message: string }>;
+  resetPasswordFirebaseEmail: (email: string, oobCode: string, newPassword: string) => Promise<{ message: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ message: string }>;
   updateProfile: (username: string, email: string, mobile_number: string) => Promise<{ message: string; user: User }>;
   getStats: () => Promise<Stats>;
@@ -110,7 +113,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Request failed.');
-    return { message: data.message, otp: data.otp };
+
+    // Trigger Firebase Client SDK to send the reset email
+    const actionCodeSettings = {
+      url: window.location.origin + '?mode=resetPassword',
+      handleCodeInApp: true
+    };
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+
+    return { message: 'Password reset link sent to your email address successfully!' };
+  };
+
+  const resetPasswordFirebaseEmail = async (email: string, oobCode: string, newPassword: string) => {
+    // 1. Confirm password reset in Firebase Client SDK
+    await confirmPasswordReset(auth, oobCode, newPassword);
+
+    // 2. Login user to Firebase Client SDK with new password to get verified idToken
+    const userCredential = await signInWithEmailAndPassword(auth, email, newPassword);
+    const idToken = await userCredential.user.getIdToken();
+
+    // 3. Send idToken and new password to backend to update PostgreSQL hash
+    const res = await fetch(`${API_BASE_URL}/auth/reset-password-firebase-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, new_password: newPassword })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Database sync failed.');
+
+    return { message: 'Password reset successful!' };
   };
 
   const resetPassword = async (email: string, otp: string, new_password: string) => {
@@ -194,6 +225,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       forgotPassword,
       resetPassword,
+      resetPasswordFirebaseEmail,
       changePassword,
       updateProfile,
       getStats,
