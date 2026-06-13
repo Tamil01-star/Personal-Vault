@@ -44,7 +44,7 @@ app.get('/health', async (req, res) => {
     status: 'OK',
     timestamp: new Date(),
     env: {
-      has_db_url: !!process.env.NEON_DATABASE_URL,
+      has_db_url: !!(process.env.NEON_DATABASE_URL || process.env.DATABASE_URL),
       has_jwt_secret: !!process.env.JWT_SECRET,
       has_encryption_key: !!process.env.ENCRYPTION_KEY,
       has_firebase_service_account: !!process.env.FIREBASE_SERVICE_ACCOUNT,
