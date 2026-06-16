@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 import { getFirebaseAuth } from '../config/firebase.js';
-import { sendOtpEmail } from '../config/email.js';
+import { sendOtpEmail, sendResetLinkEmail } from '../config/email.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'vault_secure_jwt_secret_token_192837465_vault';
 
@@ -150,10 +150,22 @@ export async function forgotPassword(req, res) {
         throw err;
       }
     }
+
+    // Generate Firebase password reset link dynamically using the client's origin header
+    const origin = req.headers.origin || req.get('origin') || 'https://personal-vault-8rfm.vercel.app';
+    const actionCodeSettings = {
+      url: `${origin}/?mode=resetPassword`,
+      handleCodeInApp: true
+    };
+    
+    const resetLink = await getFirebaseAuth().generatePasswordResetLink(email, actionCodeSettings);
+
+    // Send the custom link via Resend
+    await sendResetLinkEmail(email, resetLink, dbUser.username);
     
     return res.status(200).json({
-      message: 'User verified. Firebase email reset link can be requested.',
-      useFirebaseClient: true
+      message: 'Password reset link sent to your email address successfully!',
+      useFirebaseClient: false
     });
   } catch (err) {
     console.error('Forgot password error:', err);

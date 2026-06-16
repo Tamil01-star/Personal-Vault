@@ -1,76 +1,121 @@
-import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Create transporter using environment variables or fallback to a mock/log helper
-const getTransporter = () => {
-  const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT || '587');
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_BzJ9me4t_LTSieBZcX5v6AaVNen3EtmFu';
+const RESEND_FROM = process.env.RESEND_FROM || 'onboarding@resend.dev';
 
-  if (host && user && pass) {
-    return nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465, // true for 465, false for other ports
-      auth: {
-        user,
-        pass
-      }
+/**
+ * Generic helper to send an email via Resend's REST API
+ * @param {string} toEmail 
+ * @param {string} subject 
+ * @param {string} htmlContent 
+ * @returns {Promise<object>}
+ */
+const sendResendEmail = async (toEmail, subject, htmlContent) => {
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'personal-vault-backend/1.0.0'
+      },
+      body: JSON.stringify({
+        from: `Secure Personal Vault <${RESEND_FROM}>`,
+        to: [toEmail],
+        subject: subject,
+        html: htmlContent
+      })
     });
-  }
 
-  // Fallback to null (we will handle console logging for development)
-  return null;
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('[Resend API Error]', data);
+      throw new Error(data.message || 'Error response from Resend API.');
+    }
+
+    console.log(`[Resend Success] Email sent successfully to: ${toEmail}. ID: ${data.id}`);
+    return data;
+  } catch (err) {
+    console.error('[Resend Client Error] Error sending email:', err.message);
+    throw new Error(`Failed to send email via Resend: ${err.message}`);
+  }
 };
 
 /**
- * Send OTP Verification Email
+ * Send OTP Verification Email (preserved signature)
  * @param {string} toEmail 
  * @param {string} otpCode 
  * @returns {Promise<boolean>}
  */
 export const sendOtpEmail = async (toEmail, otpCode) => {
-  const transporter = getTransporter();
-  const fromName = process.env.SMTP_FROM || '"Secure Personal Vault" <noreply@personalvault.com>';
-
-  const mailOptions = {
-    from: fromName,
-    to: toEmail,
-    subject: 'OTP Verification - Secure Personal Vault Password Reset',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; rounded-corners: 12px; background-color: #fcfcfc;">
-        <h2 style="color: #2563eb; text-align: center;">Secure Personal Vault</h2>
-        <hr style="border: 0; border-top: 1px solid #eeeeee;" />
-        <p style="font-size: 16px; color: #333333;">Hello,</p>
-        <p style="font-size: 16px; color: #333333;">You requested an OTP verification code to reset your master password. Please use the following 6-digit code to complete your verification:</p>
-        <div style="background-color: #f3f4f6; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; color: #111827; margin: 20px 0;">
-          ${otpCode}
+  const html = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; color: #1e293b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; width: 48px; height: 48px; background: linear-gradient(135deg, #2563eb, #4f46e5); border-radius: 12px; line-height: 48px; text-align: center; color: white; font-size: 24px; font-weight: bold; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
+          🔒
         </div>
-        <p style="font-size: 14px; color: #6b7280;">This code is valid for 10 minutes. If you did not make this request, you can safely ignore this email.</p>
-        <hr style="border: 0; border-top: 1px solid #eeeeee; margin-top: 30px;" />
-        <p style="font-size: 12px; color: #9ca3af; text-align: center;">Secure Personal Vault &copy; 2026. All rights reserved.</p>
+        <h2 style="color: #0f172a; margin-top: 12px; margin-bottom: 4px; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Secure Personal Vault</h2>
+        <p style="margin: 0; font-size: 14px; color: #64748b; font-weight: 500;">Your Encrypted Digital Safe</p>
       </div>
-    `
-  };
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+      <p style="font-size: 16px; line-height: 1.6; color: #334155; margin-top: 0;">Hello,</p>
+      <p style="font-size: 16px; line-height: 1.6; color: #334155;">You requested an OTP verification code to reset your master password. Please use the following 6-digit code to complete your verification:</p>
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 18px; border-radius: 12px; text-align: center; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #2563eb; margin: 24px 0; font-family: 'Courier New', Courier, monospace;">
+        ${otpCode}
+      </div>
+      <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 24px;">This code is valid for 10 minutes. If you did not make this request, you can safely ignore this email.</p>
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+      <p style="font-size: 12px; line-height: 1.5; color: #94a3b8; text-align: center; margin-bottom: 0;">
+        Secure Personal Vault &copy; 2026. All rights reserved.
+      </p>
+    </div>
+  `;
 
-  if (transporter) {
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log(`[SMTP] Verification email sent successfully to: ${toEmail}`);
-      return true;
-    } catch (err) {
-      console.error('[SMTP] Error sending email:', err.message);
-      throw new Error('Failed to send verification email. Please check server SMTP configurations.');
-    }
-  } else {
-    // Development Fallback: Log to console
-    console.log(`\n==================================================`);
-    console.log(`[DEV FALLBACK] Verification Email for: ${toEmail}`);
-    console.log(`[DEV FALLBACK] OTP CODE IS: ${otpCode}`);
-    console.log(`==================================================\n`);
-    return true;
-  }
+  await sendResendEmail(toEmail, 'OTP Verification - Secure Personal Vault Password Reset', html);
+  return true;
+};
+
+/**
+ * Send Password Reset Link Email (Firebase-based)
+ * @param {string} toEmail 
+ * @param {string} resetLink 
+ * @param {string} username 
+ * @returns {Promise<boolean>}
+ */
+export const sendResetLinkEmail = async (toEmail, resetLink, username) => {
+  const html = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; color: #1e293b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; width: 48px; height: 48px; background: linear-gradient(135deg, #2563eb, #4f46e5); border-radius: 12px; line-height: 48px; text-align: center; color: white; font-size: 24px; font-weight: bold; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
+          🔑
+        </div>
+        <h2 style="color: #0f172a; margin-top: 12px; margin-bottom: 4px; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Secure Personal Vault</h2>
+        <p style="margin: 0; font-size: 14px; color: #64748b; font-weight: 500;">Your Encrypted Digital Safe</p>
+      </div>
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+      <p style="font-size: 16px; line-height: 1.6; color: #334155; margin-top: 0;">Hello ${username || 'User'},</p>
+      <p style="font-size: 16px; line-height: 1.6; color: #334155;">We received a request to reset the password for your Secure Personal Vault master account. Click the button below to choose a new password:</p>
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${resetLink}" style="display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, #2563eb, #4f46e5); color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); transition: all 0.2s;">
+          Reset Master Password
+        </a>
+      </div>
+      <p style="font-size: 13px; line-height: 1.5; color: #64748b; margin-bottom: 24px;">
+        If the button above doesn't work, copy and paste this URL into your browser:
+        <br />
+        <a href="${resetLink}" style="color: #2563eb; text-decoration: underline; word-break: break-all;">${resetLink}</a>
+      </p>
+      <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 24px;">This link is valid for 1 hour. If you did not make this request, you can safely ignore this email and your password will remain unchanged.</p>
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+      <p style="font-size: 12px; line-height: 1.5; color: #94a3b8; text-align: center; margin-bottom: 0;">
+        Secure Personal Vault &copy; 2026. All rights reserved.
+      </p>
+    </div>
+  `;
+
+  await sendResendEmail(toEmail, 'Reset Master Password - Secure Personal Vault', html);
+  return true;
 };

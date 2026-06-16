@@ -114,14 +114,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Request failed.');
 
-    // Trigger Firebase Client SDK to send the reset email
-    const actionCodeSettings = {
-      url: window.location.origin + '?mode=resetPassword',
-      handleCodeInApp: true
-    };
-    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    // Only trigger Firebase Client SDK to send the reset email if backend indicates we should
+    if (data.useFirebaseClient) {
+      const actionCodeSettings = {
+        url: window.location.origin + '?mode=resetPassword',
+        handleCodeInApp: true
+      };
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    }
 
-    return { message: 'Password reset link sent to your email address successfully!' };
+    return { message: data.message || 'Password reset link sent to your email address successfully!' };
   };
 
   const resetPasswordFirebaseEmail = async (email: string, oobCode: string, newPassword: string) => {
