@@ -3,8 +3,8 @@ import nodemailer from 'nodemailer';
 
 dotenv.config();
 
-const GMAIL_USER = process.env.GMAIL_USER;
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
+const GMAIL_USER = process.env.GMAIL_USER || 'mr2007tamilselvan@gmail.com';
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'pnqcejqqlqhzfhpw';
 
 // Create a Nodemailer transporter using Gmail
 const transporter = nodemailer.createTransport({
