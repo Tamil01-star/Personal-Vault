@@ -8,7 +8,7 @@ import { verifyPasswordResetCode } from 'firebase/auth';
 type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
 
 export const Auth: React.FC = () => {
-  const { login, register, forgotPassword, resetPasswordFirebaseEmail } = useAuth();
+  const { login, register, forgotPassword, resetPassword, resetPasswordFirebaseEmail } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
   const [mode, setMode] = useState<AuthMode>('login');
@@ -21,6 +21,7 @@ export const Auth: React.FC = () => {
   const [usernameOrMobile, setUsernameOrMobile] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [oobCode, setOobCode] = useState<string | null>(null);
+  const [otp, setOtp] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -101,7 +102,8 @@ export const Auth: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await forgotPassword(email);
-      setSuccess(res.message || 'A password reset link has been sent to your registered email address!');
+      setSuccess(res.message || 'A 6-digit OTP verification code has been sent to your registered email address.');
+      setMode('reset');
     } catch (err: any) {
       setError(err.message || 'Error occurred. Please verify your email.');
     } finally {
@@ -112,22 +114,27 @@ export const Auth: React.FC = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !newPassword) return setError('Please enter your registered email and new password.');
-    if (!oobCode) return setError('Reset code is missing. Please click the email link again.');
+    if (!oobCode && !otp) return setError('Please enter the 6-digit OTP verification code.');
     if (newPassword.length < 6) return setError('New password must be at least 6 characters.');
     
     setError(null);
     setIsLoading(true);
     try {
-      await resetPasswordFirebaseEmail(email, oobCode, newPassword);
+      if (oobCode) {
+        await resetPasswordFirebaseEmail(email, oobCode, newPassword);
+      } else {
+        await resetPassword(email, otp, newPassword);
+      }
       setSuccess('Password reset successful! Your password has been synchronized. You can now log in.');
       setTimeout(() => {
         setMode('login');
         setPassword('');
         setUsernameOrMobile(email);
         resetMessages();
+        setOtp('');
       }, 3000);
     } catch (err: any) {
-      setError(err.message || 'Error resetting password. Link may have expired.');
+      setError(err.message || 'Error resetting password. OTP code may be invalid or expired.');
     } finally {
       setIsLoading(false);
     }
@@ -391,6 +398,23 @@ export const Auth: React.FC = () => {
               <div className="text-center bg-primary/5 border border-primary/10 rounded-xl p-3 mb-2">
                 <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block">Account Email</span>
                 <span className="text-xs text-foreground font-bold">{email}</span>
+              </div>
+            {!oobCode && (
+              <div>
+                <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">6-Digit OTP Code</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted-foreground/85">
+                    <Mail size={16} />
+                  </span>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="Enter 6-digit OTP code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="w-full premium-input pl-10 pr-4 py-2.5 text-sm transition-all focus:ring-4 focus:ring-primary/10"
+                  />
+                </div>
               </div>
             )}
 

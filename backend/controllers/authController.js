@@ -151,21 +151,23 @@ export async function forgotPassword(req, res) {
       }
     }
 
-    // Generate Firebase password reset link dynamically using the client's origin header
-    const origin = req.headers.origin || req.get('origin') || 'https://personal-vault-8rfm.vercel.app';
-    const actionCodeSettings = {
-      url: `${origin}/?mode=resetPassword`,
-      handleCodeInApp: true
-    };
-    
-    const resetLink = await getFirebaseAuth().generatePasswordResetLink(email, actionCodeSettings);
+    // Generate a 6-digit numeric OTP code
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Send the custom link via Resend
-    await sendResetLinkEmail(email, resetLink, dbUser.username);
+    // Cache the OTP code in memory store (valid for 10 minutes)
+    otpStore.set(email, {
+      otp: otpCode,
+      expiresAt: Date.now() + 10 * 60 * 1000
+    });
+    console.log(`[OTP] Generated verification code for ${email}: ${otpCode}`);
+
+    // Send the OTP via Resend
+    await sendOtpEmail(email, otpCode);
     
     return res.status(200).json({
-      message: 'Password reset link sent to your email address successfully!',
-      useFirebaseClient: false
+      message: 'OTP verification code sent to your email address successfully!',
+      useFirebaseClient: false,
+      flow: 'otp'
     });
   } catch (err) {
     console.error('Forgot password error:', err);
@@ -199,11 +201,25 @@ export async function resetPassword(req, res) {
       return res.status(400).json({ error: 'Invalid OTP code. Please check your email and try again.' });
     }
     
-    // OTP matches, update password
+    // OTP matches, update password in PostgreSQL
     const salt = await bcrypt.genSalt(10);
     const newPasswordHash = await bcrypt.hash(new_password, salt);
     
-    await pool.query('UPDATE users SET password_hash = $1 WHERE email = $2', [newPasswordHash, email]);
+    const updateRes = await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE email = $2 RETURNING id', 
+      [newPasswordHash, email]
+    );
+    
+    if (updateRes.rows.length > 0) {
+      const userId = updateRes.rows[0].id.toString();
+      // Synchronize new password to Firebase Auth dynamically
+      try {
+        await getFirebaseAuth().updateUser(userId, { password: new_password });
+        console.log(`Successfully synchronized password for user ${userId} to Firebase Auth.`);
+      } catch (fbErr) {
+        console.log(`Firebase password sync error for user ${userId}:`, fbErr.message);
+      }
+    }
     
     // Clear OTP
     otpStore.delete(email);
