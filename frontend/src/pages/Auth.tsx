@@ -23,6 +23,7 @@ export const Auth: React.FC = () => {
   const [oobCode, setOobCode] = useState<string | null>(null);
   const [otp, setOtp] = useState('');
   const [forgotStep, setForgotStep] = useState<1 | 2 | 3>(1);
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -131,6 +132,7 @@ export const Auth: React.FC = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !newPassword) return setError('Please enter your registered email and new password.');
+    if (newPassword !== confirmPassword) return setError('Passwords do not match. Please verify.');
     if (!oobCode && !otp) return setError('Please enter the 6-digit OTP verification code.');
     if (newPassword.length < 6) return setError('New password must be at least 6 characters.');
     
@@ -158,6 +160,7 @@ export const Auth: React.FC = () => {
     setForgotStep(1);
     setOtp('');
     setNewPassword('');
+    setConfirmPassword('');
     resetMessages();
   };
 
@@ -492,6 +495,21 @@ export const Auth: React.FC = () => {
                     </button>
                   </div>
                 </div>
+                <div>
+                  <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">Confirm Password</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted-foreground/85">
+                      <KeyRound size={16} />
+                    </span>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Re-enter new master password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full premium-input pl-10 pr-10 py-2.5 text-sm transition-all focus:ring-4 focus:ring-primary/10"
+                    />
+                  </div>
+                </div>
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -543,6 +561,22 @@ export const Auth: React.FC = () => {
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1.5">Confirm Password</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted-foreground/85">
+                  <KeyRound size={16} />
+                </span>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Re-enter new master password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full premium-input pl-10 pr-10 py-2.5 text-sm transition-all focus:ring-4 focus:ring-primary/10"
+                />
               </div>
             </div>
 
