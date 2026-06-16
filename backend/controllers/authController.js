@@ -176,6 +176,43 @@ export async function forgotPassword(req, res) {
 }
 
 /**
+ * Verify OTP Code
+ */
+export async function verifyOtp(req, res) {
+  const { email, otp } = req.body;
+  
+  if (!email || !otp) {
+    return res.status(400).json({ error: 'Email address and OTP code are required.' });
+  }
+  
+  try {
+    const record = otpStore.get(email);
+    
+    if (!record) {
+      return res.status(400).json({ error: 'No OTP requested for this email address.' });
+    }
+    
+    if (Date.now() > record.expiresAt) {
+      otpStore.delete(email);
+      return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
+    }
+    
+    if (record.otp !== otp) {
+      return res.status(400).json({ error: 'Invalid OTP code. Please check your email and try again.' });
+    }
+    
+    // Mark OTP as verified
+    record.verified = true;
+    otpStore.set(email, record);
+    
+    return res.status(200).json({ message: 'OTP verified successfully. You can now set your new password.' });
+  } catch (err) {
+    console.error('Verify OTP error:', err);
+    return res.status(500).json({ error: 'Internal server error occurred.' });
+  }
+}
+
+/**
  * Reset Password with OTP
  */
 export async function resetPassword(req, res) {
@@ -201,7 +238,11 @@ export async function resetPassword(req, res) {
       return res.status(400).json({ error: 'Invalid OTP code. Please check your email and try again.' });
     }
     
-    // OTP matches, update password in PostgreSQL
+    if (!record.verified) {
+      return res.status(400).json({ error: 'OTP has not been verified yet.' });
+    }
+    
+    // OTP matches and is verified, update password in PostgreSQL
     const salt = await bcrypt.genSalt(10);
     const newPasswordHash = await bcrypt.hash(new_password, salt);
     

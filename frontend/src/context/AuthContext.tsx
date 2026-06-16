@@ -31,6 +31,7 @@ interface AuthContextType {
   register: (username: string, email: string, mobile_number: string, password: string) => Promise<{ message: string }>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<{ message: string }>;
+  verifyOtp: (email: string, otp: string) => Promise<{ message: string }>;
   resetPassword: (email: string, otp: string, new_password: string) => Promise<{ message: string }>;
   resetPasswordFirebaseEmail: (email: string, oobCode: string, newPassword: string) => Promise<{ message: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ message: string }>;
@@ -124,6 +125,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     return { message: data.message || 'Password reset link sent to your email address successfully!' };
+  };
+
+  const verifyOtp = async (email: string, otp: string) => {
+    const res = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Verification failed.');
+    return { message: data.message };
   };
 
   const resetPasswordFirebaseEmail = async (email: string, oobCode: string, newPassword: string) => {
@@ -226,6 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       register,
       logout,
       forgotPassword,
+      verifyOtp,
       resetPassword,
       resetPasswordFirebaseEmail,
       changePassword,
