@@ -1,51 +1,47 @@
 import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_BzJ9me4t_LTSieBZcX5v6AaVNen3EtmFu';
-const RESEND_FROM = process.env.RESEND_FROM || 'onboarding@resend.dev';
+const GMAIL_USER = process.env.GMAIL_USER;
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
+
+// Create a Nodemailer transporter using Gmail
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: GMAIL_USER,
+    pass: GMAIL_APP_PASSWORD,
+  },
+});
 
 /**
- * Generic helper to send an email via Resend's REST API
+ * Generic helper to send an email via Nodemailer
  * @param {string} toEmail 
  * @param {string} subject 
  * @param {string} htmlContent 
  * @returns {Promise<object>}
  */
-const sendResendEmail = async (toEmail, subject, htmlContent) => {
+const sendNodemailerEmail = async (toEmail, subject, htmlContent) => {
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-        'User-Agent': 'personal-vault-backend/1.0.0'
-      },
-      body: JSON.stringify({
-        from: `Secure Personal Vault <${RESEND_FROM}>`,
-        to: [toEmail],
-        subject: subject,
-        html: htmlContent
-      })
-    });
+    const mailOptions = {
+      from: `Secure Personal Vault <${GMAIL_USER}>`,
+      to: toEmail,
+      subject: subject,
+      html: htmlContent,
+    };
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('[Resend API Error]', data);
-      throw new Error(data.message || 'Error response from Resend API.');
-    }
-
-    console.log(`[Resend Success] Email sent successfully to: ${toEmail}. ID: ${data.id}`);
-    return data;
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[NodeMailer Success] Email sent successfully to: ${toEmail}. Message ID: ${info.messageId}`);
+    return info;
   } catch (err) {
-    console.error('[Resend Client Error] Error sending email:', err.message);
-    throw new Error(`Failed to send email via Resend: ${err.message}`);
+    console.error('[NodeMailer Error] Error sending email:', err.message);
+    throw new Error(`Failed to send email via NodeMailer: ${err.message}`);
   }
 };
 
 /**
- * Send OTP Verification Email (preserved signature)
+ * Send OTP Verification Email
  * @param {string} toEmail 
  * @param {string} otpCode 
  * @returns {Promise<boolean>}
@@ -74,7 +70,7 @@ export const sendOtpEmail = async (toEmail, otpCode) => {
     </div>
   `;
 
-  await sendResendEmail(toEmail, 'OTP Verification - Secure Personal Vault Password Reset', html);
+  await sendNodemailerEmail(toEmail, 'OTP Verification - Secure Personal Vault Password Reset', html);
   return true;
 };
 
@@ -116,6 +112,6 @@ export const sendResetLinkEmail = async (toEmail, resetLink, username) => {
     </div>
   `;
 
-  await sendResendEmail(toEmail, 'Reset Master Password - Secure Personal Vault', html);
+  await sendNodemailerEmail(toEmail, 'Reset Master Password - Secure Personal Vault', html);
   return true;
 };
