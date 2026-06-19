@@ -22,7 +22,7 @@ export const Settings: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') return;
+    if (deleteConfirmText !== user?.username) return;
     setDeleteError(null);
     try {
       setDeleteLoading(true);
@@ -425,13 +425,13 @@ export const Settings: React.FC = () => {
 
             <div className="space-y-2 bg-muted/40 p-3 rounded-xl border border-border/40">
               <label className="block text-[10px] font-semibold text-muted-foreground mb-1">
-                Type <span className="font-bold text-foreground select-all">DELETE</span> to confirm:
+                Type your username <span className="font-bold text-foreground select-all">{user?.username}</span> to confirm:
               </label>
               <input
                 type="text"
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder="DELETE"
+                placeholder={user?.username || ''}
                 className="w-full bg-background border border-border focus:border-red-500 focus:ring-1 focus:ring-red-500 rounded-xl py-2 px-3 text-xs focus:outline-none transition-colors"
               />
             </div>
@@ -450,7 +450,7 @@ export const Settings: React.FC = () => {
               </button>
               <button
                 onClick={handleDeleteAccount}
-                disabled={deleteConfirmText !== 'DELETE' || deleteLoading}
+                disabled={deleteConfirmText !== user?.username || deleteLoading}
                 className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-red-500/15"
               >
                 {deleteLoading ? 'Deleting...' : 'Permanently Delete'}
