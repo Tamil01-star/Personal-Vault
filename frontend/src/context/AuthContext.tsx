@@ -37,6 +37,7 @@ interface AuthContextType {
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ message: string }>;
   updateProfile: (username: string, email: string, mobile_number: string) => Promise<{ message: string; user: User }>;
   getStats: () => Promise<Stats>;
+  deleteAccount: () => Promise<void>;
   apiCall: (endpoint: string, options?: RequestInit) => Promise<any>;
 }
 
@@ -195,6 +196,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return data.stats;
   };
 
+  const deleteAccount = async () => {
+    await apiCall('/auth/delete-account', {
+      method: 'DELETE'
+    });
+    logout();
+  };
+
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     const activeToken = token || localStorage.getItem('token');
     if (!activeToken) {
@@ -244,6 +252,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       changePassword,
       updateProfile,
       getStats,
+      deleteAccount,
       apiCall
     }}>
       {children}

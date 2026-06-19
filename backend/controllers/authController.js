@@ -465,3 +465,40 @@ export async function resetPasswordFirebaseEmail(req, res) {
     return res.status(401).json({ error: 'Invalid or expired Firebase email token. Please try again.' });
   }
 }
+
+/**
+ * Delete User Account permanently (cascades database data and deletes Firebase user)
+ */
+export async function deleteAccount(req, res) {
+  const userId = req.user.id;
+  const email = req.user.email;
+
+  try {
+    // 1. Delete user from PostgreSQL (cascade automatically deletes notes, passwords, letters, files, diary_entries)
+    const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id, email', [userId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found in database.' });
+    }
+
+    // 2. Clear OTP cache if any
+    if (email) {
+      otpStore.delete(email);
+    }
+
+    // 3. Delete user from Firebase Auth
+    try {
+      await getFirebaseAuth().deleteUser(userId.toString());
+      console.log(`Successfully deleted Firebase user for UID: ${userId}`);
+    } catch (fbErr) {
+      // If user doesn't exist in Firebase, log it but don't fail the deletion flow
+      console.log(`Firebase user deletion info/error (UID: ${userId}):`, fbErr.message);
+    }
+
+    return res.status(200).json({ message: 'Account and all associated data deleted successfully.' });
+  } catch (err) {
+    console.error('Delete account error:', err);
+    return res.status(500).json({ error: 'Internal server error occurred while deleting account.' });
+  }
+}
+
