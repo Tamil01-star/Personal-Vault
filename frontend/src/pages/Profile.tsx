@@ -17,7 +17,8 @@ import {
   User,
   Mail,
   Phone,
-  Save
+  Save,
+  Trash2
 } from 'lucide-react';
 
 interface Stats {
@@ -29,8 +30,27 @@ interface Stats {
 }
 
 export const Profile: React.FC = () => {
-  const { user, changePassword, apiCall, getStats, logout, updateProfile } = useAuth();
+  const { user, changePassword, apiCall, getStats, logout, updateProfile, deleteAccount } = useAuth();
   const { theme, toggleTheme } = useTheme();
+
+  // Delete account states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    setDeleteError(null);
+    try {
+      setDeleteLoading(true);
+      await deleteAccount();
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to delete account.');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const [stats, setStats] = useState<Stats>({ passwords: 0, notes: 0, diary: 0, letters: 0, files: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
@@ -613,6 +633,87 @@ export const Profile: React.FC = () => {
         </div>
 
       </div>
+
+      {/* DANGER ZONE - DELETE ACCOUNT */}
+      <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-red-500/10 text-red-500 rounded-xl">
+            <Trash2 size={18} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-red-400">Danger Zone</h3>
+            <p className="text-[10px] text-muted-foreground">Irreversible operations on your personal vault.</p>
+          </div>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+          <div className="space-y-1">
+            <h4 className="text-xs font-semibold text-foreground">Delete Account Permanently</h4>
+            <p className="text-[10px] text-muted-foreground leading-relaxed max-w-xl">
+              Permanently delete your account and all associated encrypted vault contents including passwords, notes, diaries, files, and letters. This action is irreversible and all data will be lost forever.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="sm:self-center bg-red-500 hover:bg-red-600 active:scale-[0.98] text-white py-2 px-4 rounded-xl text-xs font-bold transition-all whitespace-nowrap shadow-md shadow-red-500/10"
+          >
+            Delete Account
+          </button>
+        </div>
+      </div>
+
+      {/* DELETE ACCOUNT CONFIRMATION MODAL */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-card border border-red-500/20 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scale-up">
+            <div className="space-y-2">
+              <h3 className="text-base font-bold text-foreground">Delete Account Permanently?</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                This action will permanently delete the account for <span className="font-semibold text-foreground">{user?.email}</span>. All passwords, notes, diaries, letters, and uploaded files will be destroyed. This cannot be undone.
+              </p>
+            </div>
+
+            {deleteError && (
+              <div className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] rounded-lg font-medium">
+                {deleteError}
+              </div>
+            )}
+
+            <div className="space-y-2 bg-muted/40 p-3 rounded-xl border border-border/40">
+              <label className="block text-[10px] font-semibold text-muted-foreground mb-1">
+                Type <span className="font-bold text-foreground select-all">DELETE</span> to confirm:
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="DELETE"
+                className="w-full bg-background border border-border focus:border-red-500 focus:ring-1 focus:ring-red-500 rounded-xl py-2 px-3 text-xs focus:outline-none transition-colors"
+              />
+            </div>
+
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText('');
+                  setDeleteError(null);
+                }}
+                disabled={deleteLoading}
+                className="px-4 py-2 border border-border hover:bg-accent text-foreground rounded-xl text-xs font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE' || deleteLoading}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-red-500/15"
+              >
+                {deleteLoading ? 'Deleting...' : 'Permanently Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MOCK PIN CODE REGISTRATION MODAL */}
       {isPinModalOpen && (
