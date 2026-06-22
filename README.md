@@ -2,7 +2,7 @@
 
 **Secure Personal Vault** is a secure, modern, and mobile-first full-stack web application designed to act as a private digital safe. It allows users to encrypt and manage password credentials, draft notes, letters, private diaries, and upload documents. 
 
-🔗 **Live Website:** [https://personal-vault-8rfm.vercel.app/](https://personal-vault-8rfm.vercel.app/)
+🔗 **Live Website:** [https://personal-vault-8rfm.vercel.app/]((https://personal-vault-fawn-five.vercel.app/))
 
 The application is architected with a responsive mobile-first shell (incorporating a Bottom Navigation bar and FAB buttons on mobile viewports) making it ready to be converted into a native Android app using Capacitor, Cordova, or an Android WebView shell.
 
