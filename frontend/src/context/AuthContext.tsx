@@ -4,7 +4,7 @@ import { sendPasswordResetEmail, confirmPasswordReset, signInWithEmailAndPasswor
 
 export const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
-  : 'https://personal-vault-fawn-five.vercel.app/api';
+  : 'https://personal-vault-8rfm.vercel.app/api';
 
 interface User {
   id: number;
